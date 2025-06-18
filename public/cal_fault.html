@@ -58,6 +58,56 @@
             margin-bottom: 0.5rem;
         }
 
+        .step-container {
+            display: none;
+        }
+
+        .step-container.active {
+            display: block;
+        }
+
+        .step-1 {
+            text-align: center;
+        }
+
+        .step-1 h2 {
+            color: var(--brand-purple);
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .choice-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .choice-button {
+            padding: 1rem 2rem;
+            border: 2px solid var(--brand-purple);
+            background: white;
+            color: var(--brand-purple);
+            border-radius: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .choice-button:hover {
+            background: var(--brand-purple);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(101, 49, 163, 0.3);
+        }
+
+        .choice-button.selected {
+            background: var(--brand-purple);
+            color: white;
+        }
+
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -144,6 +194,17 @@
             color: var(--brand-purple);
             border: none;
         }
+        .button-back {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            margin-left: 1rem;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -152,72 +213,124 @@
             <img src="/images/buykal-logo.png" alt="BuyKal Logo">
         </div>
         <div class="form-container">
-            <div class="form-header">
-                <h1>פתיחת תקלה C.A.L</h1>
+            <!-- Step 1: Choice Selection -->
+            <div class="step-container step-1 active" id="step1">
+                <div class="step-1">
+                    <h2>פתיחת תקלה</h2>
+                    <div class="choice-buttons">
+                        <button type="button" class="choice-button" onclick="selectChoice('E.R.N')">E.R.N</button>
+                        <button type="button" class="choice-button" onclick="selectChoice('C.A.L')">C.A.L</button>
+                    </div>
+                </div>
             </div>
-            <form id="calFaultForm" onsubmit="return handleSubmit(event)">
-                <div class="form-group">
-                    <label>תיאור התקלה
-                        <span class="tooltip">
-                            <span class="help-icon">?</span>
-                            <span class="tooltip-text">תאר את התקלה</span>
-                        </span>
-                    </label>
-                    <textarea name="faultDescription" required placeholder="הכנס תיאור התקלה"></textarea>
-                    <div class="error-message" id="faultDescriptionError"></div>
+
+            <!-- Step 2: Form -->
+            <div class="step-container step-2" id="step2">
+                <div class="form-header">
+                    <h1>פתיחת תקלה C.A.L</h1>
                 </div>
-                <div class="form-group">
-                    <label>מסך ותוכן הודעת השגיאה
-                        <span class="tooltip">
-                            <span class="help-icon">?</span>
-                            <span class="tooltip-text">צרף צילום מסך של קוד השגיאה שקיבלת</span>
-                        </span>
-                    </label>
-                    <input type="file" name="errorScreenshot" accept="image/*">
-                    <div class="error-message" id="errorScreenshotError"></div>
-                </div>
-                <div class="form-group">
-                    <label>ת.ז לקוח קצה
-                        <span class="tooltip">
-                            <span class="help-icon">?</span>
-                            <span class="tooltip-text">תעודת זהות של מבקש ההלוואה</span>
-                        </span>
-                    </label>
-                    <input type="number" name="customerId" required placeholder="הכנס ת.ז לקוח קצה" min="1" step="1">
-                    <div class="error-message" id="customerIdError"></div>
-                </div>
-                <div class="form-group">
-                    <label>ברקוד הלוואה
-                        <span class="tooltip">
-                            <span class="help-icon">?</span>
-                            <span class="tooltip-text">ציין את ברקוד ההלוואה שמופיע בצידו הימני העליון של מסך ההלוואה</span>
-                        </span>
-                    </label>
-                    <input type="number" name="loanBarcode" required placeholder="הכנס ברקוד הלוואה" min="1" step="1">
-                    <div class="error-message" id="loanBarcodeError"></div>
-                </div>
-                <div class="form-group">
-                    <label>תאריך ושעת התקלה
-                        <span class="tooltip">
-                            <span class="help-icon">?</span>
-                            <span class="tooltip-text">ציין את התאריך והשעה בה נתקלת בתקלה</span>
-                        </span>
-                    </label>
-                    <input type="datetime-local" name="faultDateTime" required>
-                    <div class="error-message" id="faultDateTimeError"></div>
-                </div>
-                <div class="button-group">
-                    <button type="submit" class="button button-submit">שליחת הטופס</button>
-                </div>
-            </form>
+                <form id="calFaultForm" onsubmit="return handleSubmit(event)">
+                    <input type="hidden" name="userChoice" id="userChoice">
+                    <div class="form-group">
+                        <label>תיאור התקלה
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">תאר את התקלה</span>
+                            </span>
+                        </label>
+                        <textarea name="faultDescription" required placeholder="הכנס תיאור התקלה"></textarea>
+                        <div class="error-message" id="faultDescriptionError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>מסך ותוכן הודעת השגיאה
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">צרף צילום מסך של קוד השגיאה שקיבלת</span>
+                            </span>
+                        </label>
+                        <input type="file" name="errorScreenshot" accept="image/*">
+                        <div class="error-message" id="errorScreenshotError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>ת.ז לקוח קצה
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">תעודת זהות של מבקש ההלוואה</span>
+                            </span>
+                        </label>
+                        <input type="number" name="customerId" required placeholder="הכנס ת.ז לקוח קצה" min="1" step="1">
+                        <div class="error-message" id="customerIdError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>ברקוד הלוואה
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">ציין את ברקוד ההלוואה שמופיע בצידו הימני העליון של מסך ההלוואה</span>
+                            </span>
+                        </label>
+                        <input type="number" name="loanBarcode" required placeholder="הכנס ברקוד הלוואה" min="1" step="1">
+                        <div class="error-message" id="loanBarcodeError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>תאריך ושעת התקלה
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">ציין את התאריך והשעה בה נתקלת בתקלה</span>
+                            </span>
+                        </label>
+                        <input type="datetime-local" name="faultDateTime" required>
+                        <div class="error-message" id="faultDateTimeError"></div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="button button-back" onclick="goBack()">חזור</button>
+                        <button type="submit" class="button button-submit">שליחת הטופס</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
+        let selectedChoice = '';
+
+        function selectChoice(choice) {
+            selectedChoice = choice;
+            
+            // Update button styles
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            // Set the choice in the hidden input
+            document.getElementById('userChoice').value = choice;
+            
+            // Show step 2 after a short delay for visual feedback
+            setTimeout(() => {
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+            }, 300);
+        }
+
+        function goBack() {
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+            selectedChoice = '';
+            document.getElementById('userChoice').value = '';
+            
+            // Reset button styles
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+        }
+
         function handleSubmit(event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
+
+            // Add the user choice to form data
+            formData.append('userChoice', selectedChoice);
 
             // בדיקת קבצים
             let hasFileError = false;
@@ -256,6 +369,8 @@
                 }
                 alert('הטופס נשלח בהצלחה!');
                 form.reset();
+                // Reset to step 1
+                goBack();
             })
             .catch(error => {
                 console.error('Error:', error);
