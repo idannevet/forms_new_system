@@ -215,203 +215,201 @@
         <div class="logo-container">
             <img src="/images/buykal-logo.png" alt="BuyKal Logo">
         </div>
-        <div class="form-container">
-            <!-- Step 1: Choice Selection (match cal_fault style) -->
-            <div class="step-container step-1 active" id="step1">
-                <div class="step-1" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px;">
-                    <h2 style="color: var(--brand-purple); font-size: 1.8rem; margin-bottom: 2rem; text-align: center; font-weight: 700;">טופס ביטול עסקה</h2>
-                    <div class="choice-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                        <button type="button" class="choice-button" style="padding: 1rem 2rem; border: 2px solid var(--brand-purple); background: white; color: var(--brand-purple); border-radius: 0.5rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-width: 120px;" onclick="selectChoice('E.R.N')">E.R.N</button>
-                        <button type="button" class="choice-button" style="padding: 1rem 2rem; border: 2px solid var(--brand-purple); background: white; color: var(--brand-purple); border-radius: 0.5rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-width: 120px;" onclick="selectChoice('C.A.L')">C.A.L</button>
-                    </div>
+        <!-- Step 1: Choice Selection (in form-container) -->
+        <div class="form-container step-container step-1 active" id="step1">
+            <div class="step-1" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px;">
+                <h2 style="color: var(--brand-purple); font-size: 1.8rem; margin-bottom: 2rem; text-align: center; font-weight: 700;">טופס ביטול עסקה</h2>
+                <div class="choice-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" class="choice-button" style="padding: 1rem 2rem; border: 2px solid var(--brand-purple); background: white; color: var(--brand-purple); border-radius: 0.5rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-width: 120px;" onclick="selectChoice('E.R.N')">E.R.N</button>
+                    <button type="button" class="choice-button" style="padding: 1rem 2rem; border: 2px solid var(--brand-purple); background: white; color: var(--brand-purple); border-radius: 0.5rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-width: 120px;" onclick="selectChoice('C.A.L')">C.A.L</button>
                 </div>
             </div>
-            <!-- Step 2: Form -->
-            <div class="step-container step-2" id="step2">
-                <div class="form-header">
-                    <h1>טופס ביטול עסקה | C.A.L</h1>
-                    <p>אנא מלאו את הפרטים הבאים לביטול העסקה</p>
-                </div>
-                <form id="cancelLoanForm" onsubmit="return handleSubmit(event)">
-                    <input type="hidden" name="userChoice" id="userChoice">
-                    <div class="form-group">
-                        <label>
-                            שם מלא
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">שם מלא של ממלא הטופס</span>
-                            </span>
-                        </label>
-                        <input type="text" name="fullName" required minlength="2" placeholder="הכנס שם מלא">
-                        <div class="error-message" id="fullNameError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            טלפון נייד
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">מס' טלפון נייד של ממלא הטופס</span>
-                            </span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-icon">📱</span>
-                            <input type="tel" name="phone" required pattern="[0-9]{10}" class="input-with-icon" placeholder="הכנס מספר טלפון" dir="ltr">
-                        </div>
-                        <div class="error-message" id="phoneError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            כתובת מייל
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">כתובת המייל של ממלא הטופס</span>
-                            </span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-icon">✉️</span>
-                            <input type="email" name="email" required class="input-with-icon" placeholder="הכנס כתובת מייל" dir="ltr">
-                        </div>
-                        <div class="error-message" id="emailError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            שם בית העסק
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">שם בית העסק כפי שמצויין בתעודת ההתאגדות</span>
-                            </span>
-                        </label>
-                        <input type="text" name="businessName" required minlength="2" placeholder="הכנס שם בית העסק">
-                        <div class="error-message" id="businessNameError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            שם מלא | לקוח
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">שם מלא של לקוח הקצה שלקח את ההלוואה</span>
-                            </span>
-                        </label>
-                        <input type="text" name="customerName" required minlength="2" placeholder="הכנס שם מלא של הלקוח">
-                        <div class="error-message" id="customerNameError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            מס' ת.ז | לקוח
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">מספר תעודת הזהות של לקוח הקצה שלקח את ההלוואה</span>
-                            </span>
-                        </label>
-                        <input type="text" name="customerId" required pattern="[0-9]{9}" placeholder="הכנס מספר תעודת זהות">
-                        <div class="error-message" id="customerIdError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            ברקוד הלוואה
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">מספר הברקוד של ההלוואה</span>
-                            </span>
-                        </label>
-                        <input type="text" name="loanBarcode" required placeholder="הכנס ברקוד הלוואה">
-                        <div class="error-message" id="loanBarcodeError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            שם סוכן
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">שם הסוכן שחתם את העסקה</span>
-                            </span>
-                        </label>
-                        <input type="text" name="agentName" required minlength="2" placeholder="הכנס שם סוכן">
-                        <div class="error-message" id="agentNameError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            סיבת הביטול
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">פרט את סיבת הביטול</span>
-                            </span>
-                        </label>
-                        <textarea name="cancellationReason" required rows="4" placeholder="הכנס סיבת ביטול"></textarea>
-                        <div class="error-message" id="cancellationReasonError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            סכום הלוואה
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">סכום ההלוואה המקורי</span>
-                            </span>
-                        </label>
-                        <input type="number" name="loanAmount" required min="0" placeholder="הכנס סכום הלוואה">
-                        <div class="error-message" id="loanAmountError"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            האם ההלוואה הועברה?
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">האם ההלוואה הועברה לחשבון הבנק?</span>
-                            </span>
-                        </label>
-                        <div class="radio-group">
-                            <label class="radio-option">
-                                <input type="radio" name="isLoanTransferred" value="yes" checked>
-                                כן
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="isLoanTransferred" value="no">
-                                לא
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group" id="fileUploadGroup">
-                        <label>
-                            אישור תשלום
-                            <span class="tooltip">
-                                <span class="help-icon">?</span>
-                                <span class="tooltip-text">העלה אישור תשלום (אם יש)</span>
-                            </span>
-                        </label>
-                        <div id="transferDetails" style="background:#f6f6fa;border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:1rem;line-height:1.7;direction:rtl;">
-                            <b>במידה וההלוואה הוזרמה לחשבונך יש להעביר את התשלום לכאל בהעברת זהב <u>בלבד</u>.<br>
-                            אנא צרף צילום מסך של ההעברה לחשבון של כאל.</b><br>
-                            <br>
-                            <b>שם חשבון:</b> כ.א.ל (מימון) בע"מ<br>
-                            <b>בנק:</b> דיסקונט<br>
-                            <b>חשבון:</b> 132888<br>
-                            <b>ח"פ:</b> 512936345<br>
-                            <b>מספר זהב:</b> IL52 0110 1000 0000 1132 883
-                        </div>
-                        <div class="file-input-container">
-                            <label class="file-input-label" for="paymentProof">
-                                <span>📎</span>
-                                <span id="fileName">בחר קובץ</span>
-                            </label>
-                            <input type="file" id="paymentProof" name="paymentProof" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
-                            <div class="error-message" id="paymentProofError"></div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="submit-button" style="background-color:#e2e8f0;color:#4a5568;margin-bottom:1rem;" onclick="goBack()">חזור</button>
-                    <button type="submit" class="submit-button">שליחת הטופס</button>
-                </form>
+        </div>
+        <!-- Step 2: Form (in form-container, hidden at first) -->
+        <div class="form-container step-container step-2" id="step2" style="display:none;">
+            <div class="form-header">
+                <h1>טופס ביטול עסקה | C.A.L</h1>
+                <p>אנא מלאו את הפרטים הבאים לביטול העסקה</p>
             </div>
+            <form id="cancelLoanForm" onsubmit="return handleSubmit(event)">
+                <input type="hidden" name="userChoice" id="userChoice">
+                <div class="form-group">
+                    <label>
+                        שם מלא
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">שם מלא של ממלא הטופס</span>
+                        </span>
+                    </label>
+                    <input type="text" name="fullName" required minlength="2" placeholder="הכנס שם מלא">
+                    <div class="error-message" id="fullNameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        טלפון נייד
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">מס' טלפון נייד של ממלא הטופס</span>
+                        </span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-icon">📱</span>
+                        <input type="tel" name="phone" required pattern="[0-9]{10}" class="input-with-icon" placeholder="הכנס מספר טלפון" dir="ltr">
+                    </div>
+                    <div class="error-message" id="phoneError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        כתובת מייל
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">כתובת המייל של ממלא הטופס</span>
+                        </span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-icon">✉️</span>
+                        <input type="email" name="email" required class="input-with-icon" placeholder="הכנס כתובת מייל" dir="ltr">
+                    </div>
+                    <div class="error-message" id="emailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        שם בית העסק
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">שם בית העסק כפי שמצויין בתעודת ההתאגדות</span>
+                        </span>
+                    </label>
+                    <input type="text" name="businessName" required minlength="2" placeholder="הכנס שם בית העסק">
+                    <div class="error-message" id="businessNameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        שם מלא | לקוח
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">שם מלא של לקוח הקצה שלקח את ההלוואה</span>
+                        </span>
+                    </label>
+                    <input type="text" name="customerName" required minlength="2" placeholder="הכנס שם מלא של הלקוח">
+                    <div class="error-message" id="customerNameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        מס' ת.ז | לקוח
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">מספר תעודת הזהות של לקוח הקצה שלקח את ההלוואה</span>
+                        </span>
+                    </label>
+                    <input type="text" name="customerId" required pattern="[0-9]{9}" placeholder="הכנס מספר תעודת זהות">
+                    <div class="error-message" id="customerIdError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        ברקוד הלוואה
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">מספר הברקוד של ההלוואה</span>
+                        </span>
+                    </label>
+                    <input type="text" name="loanBarcode" required placeholder="הכנס ברקוד הלוואה">
+                    <div class="error-message" id="loanBarcodeError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        שם סוכן
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">שם הסוכן שחתם את העסקה</span>
+                        </span>
+                    </label>
+                    <input type="text" name="agentName" required minlength="2" placeholder="הכנס שם סוכן">
+                    <div class="error-message" id="agentNameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        סיבת הביטול
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">פרט את סיבת הביטול</span>
+                        </span>
+                    </label>
+                    <textarea name="cancellationReason" required rows="4" placeholder="הכנס סיבת ביטול"></textarea>
+                    <div class="error-message" id="cancellationReasonError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        סכום הלוואה
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">סכום ההלוואה המקורי</span>
+                        </span>
+                    </label>
+                    <input type="number" name="loanAmount" required min="0" placeholder="הכנס סכום הלוואה">
+                    <div class="error-message" id="loanAmountError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        האם ההלוואה הועברה?
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">האם ההלוואה הועברה לחשבון הבנק?</span>
+                        </span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="isLoanTransferred" value="yes" checked>
+                            כן
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="isLoanTransferred" value="no">
+                            לא
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="fileUploadGroup">
+                    <label>
+                        אישור תשלום
+                        <span class="tooltip">
+                            <span class="help-icon">?</span>
+                            <span class="tooltip-text">העלה אישור תשלום (אם יש)</span>
+                        </span>
+                    </label>
+                    <div id="transferDetails" style="background:#f6f6fa;border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:1rem;line-height:1.7;direction:rtl;">
+                        <b>במידה וההלוואה הוזרמה לחשבונך יש להעביר את התשלום לכאל בהעברת זהב <u>בלבד</u>.<br>
+                        אנא צרף צילום מסך של ההעברה לחשבון של כאל.</b><br>
+                        <br>
+                        <b>שם חשבון:</b> כ.א.ל (מימון) בע"מ<br>
+                        <b>בנק:</b> דיסקונט<br>
+                        <b>חשבון:</b> 132888<br>
+                        <b>ח"פ:</b> 512936345<br>
+                        <b>מספר זהב:</b> IL52 0110 1000 0000 1132 883
+                    </div>
+                    <div class="file-input-container">
+                        <label class="file-input-label" for="paymentProof">
+                            <span>📎</span>
+                            <span id="fileName">בחר קובץ</span>
+                        </label>
+                        <input type="file" id="paymentProof" name="paymentProof" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="error-message" id="paymentProofError"></div>
+                    </div>
+                </div>
+
+                <button type="button" class="submit-button" style="background-color:#e2e8f0;color:#4a5568;margin-bottom:1rem;" onclick="goBack()">חזור</button>
+                <button type="submit" class="submit-button">שליחת הטופס</button>
+            </form>
         </div>
     </div>
 
@@ -425,14 +423,13 @@
             });
             event.target.classList.add('selected');
             document.getElementById('userChoice').value = choice;
-            setTimeout(() => {
-                document.getElementById('step1').classList.remove('active');
-                document.getElementById('step2').classList.add('active');
-            }, 300);
+            // Hide step 1, show step 2
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = '';
         }
         function goBack() {
-            document.getElementById('step2').classList.remove('active');
-            document.getElementById('step1').classList.add('active');
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step1').style.display = '';
             selectedChoice = '';
             document.getElementById('userChoice').value = '';
             document.querySelectorAll('.choice-button').forEach(btn => {
