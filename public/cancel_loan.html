@@ -216,13 +216,13 @@
             <img src="/images/buykal-logo.png" alt="BuyKal Logo">
         </div>
         <div class="form-container">
-            <!-- Step 1: Choice Selection -->
+            <!-- Step 1: Choice Selection (match cal_fault style) -->
             <div class="step-container step-1 active" id="step1">
-                <div class="step-1">
-                    <h2>פתיחת ביטול עסקה</h2>
-                    <div class="choice-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
-                        <button type="button" class="choice-button" onclick="selectChoice('E.R.N')">E.R.N</button>
-                        <button type="button" class="choice-button" onclick="selectChoice('C.A.L')">C.A.L</button>
+                <div class="step-1" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px;">
+                    <h2 style="color: var(--brand-purple); font-size: 1.8rem; margin-bottom: 2rem; text-align: center; font-weight: 700;">טופס ביטול עסקה</h2>
+                    <div class="choice-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="choice-button" style="padding: 1rem 2rem; border: 2px solid var(--brand-purple); background: white; color: var(--brand-purple); border-radius: 0.5rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-width: 120px;" onclick="selectChoice('E.R.N')">E.R.N</button>
+                        <button type="button" class="choice-button" style="padding: 1rem 2rem; border: 2px solid var(--brand-purple); background: white; color: var(--brand-purple); border-radius: 0.5rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-width: 120px;" onclick="selectChoice('C.A.L')">C.A.L</button>
                     </div>
                 </div>
             </div>
