@@ -748,6 +748,24 @@
                 formData.append('record_id', recordId);
             }
 
+            // אוסף את כל פרטי הבעלים מה-ownersDetailsSection
+            const ownersDetailsSection = document.getElementById('ownersDetailsSection');
+            if (ownersDetailsSection) {
+                const ownerForms = ownersDetailsSection.querySelectorAll('.owner-form');
+                ownerForms.forEach((ownerForm, index) => {
+                    const inputs = ownerForm.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        if (input.name && input.value) {
+                            if (input.type === 'file' && input.files.length > 0) {
+                                formData.append(input.name, input.files[0]);
+                            } else if (input.type !== 'file') {
+                                formData.append(input.name, input.value);
+                            }
+                        }
+                    });
+                });
+            }
+
             // בדיקת קבצים
             let hasFileError = false;
             form.querySelectorAll('input[type="file"]').forEach(input => {
@@ -765,6 +783,17 @@
                     }
                 }
             });
+
+            // בדיקת קבצים גם מה-ownersDetailsSection
+            if (ownersDetailsSection) {
+                const ownerFileInputs = ownersDetailsSection.querySelectorAll('input[type="file"]');
+                ownerFileInputs.forEach(input => {
+                    if (input.required && input.files.length === 0) {
+                        hasFileError = true;
+                    }
+                });
+            }
+
             if (hasFileError) {
                 alert('יש לבחור קבצים בכל השדות הנדרשים');
                 return;
