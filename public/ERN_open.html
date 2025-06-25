@@ -684,6 +684,9 @@
                 formData.append('record_id', recordId);
             }
 
+            // הוסף את סוג הטופס
+            formData.append('form_type', 'ern_open');
+
             // אוסף את כל פרטי הבעלים מה-ownersDetailsSection
             const ownersDetailsSection = document.getElementById('ownersDetailsSection');
             if (ownersDetailsSection) {
@@ -735,23 +738,21 @@
                 return;
             }
 
-            // לוג של כל הערכים
-            for (let pair of formData.entries()) {
-                console.log(pair[0]+ ':', pair[1]);
-            }
-
-            fetch('https://hook.eu2.make.com/761tdgm834s16wrwrqoe9yy3sikqgkfa', {
+            // שליחה ישירה של FormData (כולל קבצים) ל-API
+            fetch('/api/update-opportunity', {
                 method: 'POST',
-                body: formData
+                body: formData // שליחה כ-FormData כדי לתמוך בקבצים
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('שגיאה בשליחת הטופס');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('הטופס נשלח בהצלחה!');
+                    form.reset();
+                    showStep(0);
+                    clearFormSession();
+                } else {
+                    throw new Error(data.error || 'שגיאה בשליחת הטופס');
                 }
-                alert('הטופס נשלח בהצלחה!');
-                form.reset();
-                showStep(0);
-                clearFormSession();
             })
             .catch(error => {
                 console.error('Error:', error);
