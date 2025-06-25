@@ -476,7 +476,7 @@
                         <button type="button" class="button button-secondary" onclick="prevStep()">חזור</button>
                         <button type="button" class="button button-primary" onclick="nextStep()">הבא</button>
                     </div>
-                </div>
+                    </div>
 
                 <!-- סקשן 3: פרטי בעלים -->
                 <div class="step" id="step3">
@@ -523,7 +523,7 @@
                         <button type="button" class="button button-secondary" onclick="prevStep()">חזור</button>
                         <button type="button" class="button button-primary" onclick="nextStep()">הבא</button>
                     </div>
-                </div>
+                    </div>
 
                 <!-- סקשן 4: פרטים פיננסיים -->
                 <div class="step" id="step4">
@@ -729,10 +729,24 @@
             showStep(currentStep - 1);
         }
 
+        // פונקציה לחילוץ פרמטרים מה-URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
         function handleSubmit(event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
+
+            // הוסף את record_id מה-URL אם קיים
+            const recordId = getUrlParameter('record_id');
+            if (recordId) {
+                formData.append('record_id', recordId);
+            }
 
             // בדיקת קבצים
             let hasFileError = false;
@@ -770,8 +784,8 @@
                     throw new Error('שגיאה בשליחת הטופס');
                 }
                 alert('הטופס נשלח בהצלחה!');
-                form.reset();
-                showStep(0);
+            form.reset();
+            showStep(0);
                 clearFormSession();
             })
             .catch(error => {

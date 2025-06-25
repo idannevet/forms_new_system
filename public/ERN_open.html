@@ -544,7 +544,7 @@
                         <button type="submit" class="button button-submit">שליחת הטופס</button>
                     </div>
                 </div>
-            </form>
+    </form>
         </div>
     </div>
 
@@ -664,10 +664,25 @@
             showStep(currentStep - 1);
         }
 
+        // פונקציה לחילוץ פרמטרים מה-URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // פונקציה לשליחת הטופס
         function handleSubmit(event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
+
+            // הוסף את record_id מה-URL אם קיים
+            const recordId = getUrlParameter('record_id');
+            if (recordId) {
+                formData.append('record_id', recordId);
+            }
 
             // בדיקת קבצים
             let hasFileError = false;
