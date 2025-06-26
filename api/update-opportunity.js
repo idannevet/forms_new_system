@@ -141,6 +141,7 @@ export default async function handler(req, res) {
     // Get the opportunity ID and form type from the form
     const opportunityId = fields.record_id;
     const formType = fields.form_type; // 'ern_open' or 'eligibility_check'
+    const operation = fields.operation; // 'upload_files_only' or undefined
     
     if (!opportunityId) {
       return res.status(400).json({ 
@@ -187,70 +188,94 @@ export default async function handler(req, res) {
       ]
     };
 
-    // CALL 1: Update the Opportunity record
-    console.log('[CALL 1] Updating Opportunity record...');
-    const opportunityUpdates = {
-      Id: opportunityId
-    };
+    let opportunityUpdated = false;
 
-    // Set all checkbox fields to true for the specific form type
-    const fieldsToUpdate = checkboxFields[formType] || [];
-    fieldsToUpdate.forEach(field => {
-      opportunityUpdates[field] = true;
-    });
+    // CALL 1: Update the Opportunity record (only if not file-only operation)
+    if (operation !== 'upload_files_only') {
+      console.log('[CALL 1] Updating Opportunity record...');
+      const opportunityUpdates = {
+        Id: opportunityId
+      };
 
-    const updateResult = await conn.sobject('Opportunity').update(opportunityUpdates);
-    
-    if (!updateResult.success) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Failed to update Opportunity',
-        details: updateResult.errors 
+      // Set all checkbox fields to true for the specific form type
+      const fieldsToUpdate = checkboxFields[formType] || [];
+      fieldsToUpdate.forEach(field => {
+        opportunityUpdates[field] = true;
       });
+
+      const updateResult = await conn.sobject('Opportunity').update(opportunityUpdates);
+      
+      if (!updateResult.success) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Failed to update Opportunity',
+          details: updateResult.errors 
+        });
+      }
+      
+      console.log('[CALL 1] Opportunity updated successfully');
+      opportunityUpdated = true;
+    } else {
+      console.log('[SKIP] Skipping Opportunity update (file-only operation)');
     }
+
+    // CALL 2: Upload files in batches (if any files)
+    let uploadedFiles = [];
+    let failedFiles = [];
     
-    console.log('[CALL 1] Opportunity updated successfully');
+    if (Object.keys(files).length > 0) {
+      console.log('[CALL 2] Starting file uploads...');
+      const hebrewFieldLabels = {
+        'certificate': 'תעודת התאגדות',
+        'bankStatements': '3 חודשים עובר ושב',
+        'accountConfirmation': 'אישור קיום חשבון',
+        'authorizedSignatory': 'מורשה חתימה',
+        'balance2024': 'מאזן בוחן ל-2024',
+        'balance2025': 'מאזן בוחן ל-2025',
+        'audited2023': 'דוחות מבוקרים לשנת 2023',
+        'bankBalances': 'דו"ח ריכוז יתרות מול הבנקים',
+        // Add more as needed
+      };
 
-    // CALL 2: Upload files in batches
-    console.log('[CALL 2] Starting file uploads...');
-    const hebrewFieldLabels = {
-      'certificate': 'תעודת התאגדות',
-      'bankStatements': '3 חודשים עובר ושב',
-      'accountConfirmation': 'אישור קיום חשבון',
-      'authorizedSignatory': 'מורשה חתימה',
-      'balance2024': 'מאזן בוחן ל-2024',
-      'balance2025': 'מאזן בוחן ל-2025',
-      'audited2023': 'דוחות מבוקרים לשנת 2023',
-      'bankBalances': 'דו"ח ריכוז יתרות מול הבנקים',
-      // Add more as needed
-    };
+      const uploadResult = await uploadFilesInBatches(
+        conn, 
+        files, 
+        opportunityId, 
+        hebrewFieldLabels, 
+        2 // Upload 2 files at a time
+      );
+      
+      uploadedFiles = uploadResult.uploadedFiles;
+      failedFiles = uploadResult.failedFiles;
 
-    const { uploadedFiles, failedFiles } = await uploadFilesInBatches(
-      conn, 
-      files, 
-      opportunityId, 
-      hebrewFieldLabels, 
-      2 // Upload 2 files at a time
-    );
-
-    console.log(`[CALL 2] File uploads completed: ${uploadedFiles.length} success, ${failedFiles.length} failed`);
+      console.log(`[CALL 2] File uploads completed: ${uploadedFiles.length} success, ${failedFiles.length} failed`);
+    } else {
+      console.log('[SKIP] No files to upload');
+    }
 
     // Prepare response
     const response = {
       success: true,
-      message: 'Opportunity updated successfully',
+      message: opportunityUpdated ? 'Opportunity updated successfully' : 'Files uploaded successfully',
       formType: formType,
       opportunityId: opportunityId,
-      checkboxFieldsUpdated: fieldsToUpdate,
+      operation: operation,
+      opportunityUpdated: opportunityUpdated,
       filesUploaded: uploadedFiles.length,
       filesFailed: failedFiles.length,
       uploadedFiles: uploadedFiles,
       failedFiles: failedFiles
     };
 
+    // Add checkbox fields info if opportunity was updated
+    if (opportunityUpdated) {
+      const fieldsToUpdate = checkboxFields[formType] || [];
+      response.checkboxFieldsUpdated = fieldsToUpdate;
+    }
+
     // If some files failed, still return success but include the failures
     if (failedFiles.length > 0) {
-      response.message = `Opportunity updated successfully. ${uploadedFiles.length} files uploaded, ${failedFiles.length} files failed.`;
+      response.message = `${opportunityUpdated ? 'Opportunity updated successfully. ' : ''}${uploadedFiles.length} files uploaded, ${failedFiles.length} files failed.`;
     }
 
     res.status(200).json(response);

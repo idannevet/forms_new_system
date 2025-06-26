@@ -709,11 +709,16 @@
                 ownersDetailsSection.querySelectorAll('input[type="file"]').forEach(input => fileInputs.add(input));
             }
 
+            // Collect all files
+            const filesToUpload = [];
             fileInputs.forEach(input => {
                 if (input.files.length > 0) {
                     const file = input.files[0];
                     console.log(`Appending file: ${input.name} = ${file.name}`);
-                    formData.append(input.name, file);
+                    filesToUpload.push({
+                        fieldName: input.name,
+                        file: file
+                    });
                 }
             });
             // --- End updated file handling ---
@@ -755,38 +760,142 @@
                 return;
             }
 
-            // שליחה ישירה של FormData (כולל קבצים) ל-API
+            // Smart submission: Split into multiple smaller calls
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             const originalBtnText = submitBtn.textContent;
             submitBtn.textContent = 'שולח...';
-            fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity.js', {
-                method: 'POST',
-                body: formData // שליחה כ-FormData כדי לתמוך בקבצים
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Files uploaded:', data.filesUploaded, data.uploadedFiles);
+
+            async function submitFormSmart() {
+                try {
+                    // Step 1: Update Opportunity record (no files)
+                    console.log('[STEP 1] Updating Opportunity record...');
+                    const opportunityFormData = new FormData();
+                    opportunityFormData.append('record_id', recordId);
+                    opportunityFormData.append('form_type', 'ern_open');
+                    
+                    // Add all non-file form data
+                    const formElements = form.elements;
+                    for (let i = 0; i < formElements.length; i++) {
+                        const element = formElements[i];
+                        if (element.type !== 'file' && element.name && element.value) {
+                            opportunityFormData.append(element.name, element.value);
+                        }
+                    }
+                    
+                    // Add owner data
+                    if (ownersDetailsSection) {
+                        const ownerElements = ownersDetailsSection.elements;
+                        for (let i = 0; i < ownerElements.length; i++) {
+                            const element = ownerElements[i];
+                            if (element.type !== 'file' && element.name && element.value) {
+                                opportunityFormData.append(element.name, element.value);
+                            }
+                        }
+                    }
+
+                    const opportunityResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity', {
+                        method: 'POST',
+                        body: opportunityFormData
+                    });
+
+                    if (!opportunityResponse.ok) {
+                        throw new Error(`Opportunity update failed: ${opportunityResponse.status}`);
+                    }
+
+                    const opportunityResult = await opportunityResponse.json();
+                    console.log('[STEP 1] Opportunity updated:', opportunityResult);
+
+                    // Step 2: Upload files in small batches (max 2 files per request)
+                    if (filesToUpload.length > 0) {
+                        console.log(`[STEP 2] Uploading ${filesToUpload.length} files in batches...`);
+                        
+                        const batchSize = 2; // Max 2 files per API call
+                        const batches = [];
+                        
+                        // Split files into batches
+                        for (let i = 0; i < filesToUpload.length; i += batchSize) {
+                            batches.push(filesToUpload.slice(i, i + batchSize));
+                        }
+                        
+                        console.log(`[BATCHES] Split into ${batches.length} batches of ${batchSize} files each`);
+                        
+                        let totalUploaded = 0;
+                        let totalFailed = 0;
+                        
+                        for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+                            const batch = batches[batchIndex];
+                            console.log(`[BATCH ${batchIndex + 1}/${batches.length}] Uploading ${batch.length} files...`);
+                            
+                            // Update progress
+                            submitBtn.textContent = `מעלה קבצים... ${batchIndex + 1}/${batches.length}`;
+                            
+                            const batchFormData = new FormData();
+                            batchFormData.append('record_id', recordId);
+                            batchFormData.append('form_type', 'ern_open');
+                            batchFormData.append('operation', 'upload_files_only'); // New flag for file-only uploads
+                            
+                            // Add files for this batch
+                            batch.forEach(({ fieldName, file }) => {
+                                batchFormData.append(fieldName, file);
+                            });
+                            
+                            try {
+                                const batchResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity', {
+                                    method: 'POST',
+                                    body: batchFormData
+                                });
+                                
+                                if (!batchResponse.ok) {
+                                    throw new Error(`Batch upload failed: ${batchResponse.status}`);
+                                }
+                                
+                                const batchResult = await batchResponse.json();
+                                console.log(`[BATCH ${batchIndex + 1}] Result:`, batchResult);
+                                
+                                totalUploaded += batchResult.filesUploaded || 0;
+                                totalFailed += batchResult.filesFailed || 0;
+                                
+                                // Small delay between batches
+                                if (batchIndex < batches.length - 1) {
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                }
+                                
+                            } catch (batchError) {
+                                console.error(`[BATCH ${batchIndex + 1}] Error:`, batchError);
+                                totalFailed += batch.length;
+                            }
+                        }
+                        
+                        console.log(`[STEP 2] File uploads completed: ${totalUploaded} success, ${totalFailed} failed`);
+                    }
+
+                    // Success!
                     submitBtn.textContent = '✔';
                     setTimeout(() => {
                         submitBtn.textContent = originalBtnText;
                         submitBtn.disabled = false;
                     }, 2000);
-                    alert('הטופס נשלח בהצלחה!');
+                    
+                    const successMessage = filesToUpload.length > 0 
+                        ? `הטופס נשלח בהצלחה! ${filesToUpload.length} קבצים הועלו.`
+                        : 'הטופס נשלח בהצלחה!';
+                    
+                    alert(successMessage);
                     form.reset();
                     showStep(0);
                     clearFormSession();
-                } else {
-                    throw new Error(data.error || 'שגיאה בשליחת הטופס');
+                    
+                } catch (error) {
+                    console.error('Smart submission error:', error);
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.disabled = false;
+                    alert('שגיאה בשליחת הטופס. אנא נסה שנית או פנה לתמיכה');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                submitBtn.textContent = originalBtnText;
-                submitBtn.disabled = false;
-                alert('שגיאה בשליחת הטופס. אנא נסה שנית או פנה לתמיכה');
-            });
+            }
+
+            // Start smart submission
+            submitFormSmart();
         }
 
         // פונקציה לעיצוב שדה מטבע עם פסיק מפריד אלפים
