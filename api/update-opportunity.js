@@ -122,67 +122,64 @@ export default async function handler(req, res) {
         for (const file of fileArray) {
           if (file && file.filepath) {
             try {
-              // Read file content
               const fs = await import('fs');
               const fileContent = fs.readFileSync(file.filepath);
-              
-              // Get the field label for the filename
               const fieldLabel = fieldLabels[fieldName] || fieldName;
               const fileExtension = file.originalFilename ? 
                 file.originalFilename.split('.').pop() : 'pdf';
               const newFileName = `${fieldLabel}.${fileExtension}`;
-              
-              // Upload to Salesforce Files
+              console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
               const contentVersion = await conn.sobject('ContentVersion').create({
                 Title: newFileName,
                 PathOnClient: newFileName,
                 VersionData: fileContent.toString('base64'),
-                FirstPublishLocationId: opportunityId // This links it to the Opportunity
+                FirstPublishLocationId: opportunityId
               });
-
               if (contentVersion.success) {
+                console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
                 uploadedFiles.push({
                   fieldName,
                   originalFileName: file.originalFilename,
                   newFileName: newFileName,
                   contentVersionId: contentVersion.id
                 });
+              } else {
+                console.error(`[UPLOAD] Failed: ${newFileName}`, contentVersion.errors);
               }
             } catch (fileError) {
-              console.error(`Error uploading file ${fieldName}:`, fileError);
+              console.error(`[UPLOAD] Error uploading file ${fieldName}:`, fileError);
             }
           }
         }
       } else if (files[fieldName] && files[fieldName].filepath) {
-        // Single file
         const file = files[fieldName];
         try {
           const fs = await import('fs');
           const fileContent = fs.readFileSync(file.filepath);
-          
-          // Get the field label for the filename
           const fieldLabel = fieldLabels[fieldName] || fieldName;
           const fileExtension = file.originalFilename ? 
             file.originalFilename.split('.').pop() : 'pdf';
           const newFileName = `${fieldLabel}.${fileExtension}`;
-          
+          console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
           const contentVersion = await conn.sobject('ContentVersion').create({
             Title: newFileName,
             PathOnClient: newFileName,
             VersionData: fileContent.toString('base64'),
             FirstPublishLocationId: opportunityId
           });
-
           if (contentVersion.success) {
+            console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
             uploadedFiles.push({
               fieldName,
               originalFileName: file.originalFilename,
               newFileName: newFileName,
               contentVersionId: contentVersion.id
             });
+          } else {
+            console.error(`[UPLOAD] Failed: ${newFileName}`, contentVersion.errors);
           }
         } catch (fileError) {
-          console.error(`Error uploading file ${fieldName}:`, fileError);
+          console.error(`[UPLOAD] Error uploading file ${fieldName}:`, fileError);
         }
       }
     }
