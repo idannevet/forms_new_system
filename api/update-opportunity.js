@@ -129,12 +129,17 @@ export default async function handler(req, res) {
                 file.originalFilename.split('.').pop() : 'pdf';
               const newFileName = `${fieldLabel}.${fileExtension}`;
               console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
-              const contentVersion = await conn.sobject('ContentVersion').create({
+              const payload = {
                 Title: newFileName,
                 PathOnClient: newFileName,
                 VersionData: fileContent.toString('base64'),
                 FirstPublishLocationId: opportunityId
+              };
+              console.log('[PAYLOAD]', {
+                ...payload,
+                VersionData: payload.VersionData.substring(0, 30) + '...'
               });
+              const contentVersion = await conn.sobject('ContentVersion').create(payload);
               if (contentVersion.success) {
                 console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
                 uploadedFiles.push({
@@ -161,12 +166,17 @@ export default async function handler(req, res) {
             file.originalFilename.split('.').pop() : 'pdf';
           const newFileName = `${fieldLabel}.${fileExtension}`;
           console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
-          const contentVersion = await conn.sobject('ContentVersion').create({
+          const payload = {
             Title: newFileName,
             PathOnClient: newFileName,
             VersionData: fileContent.toString('base64'),
             FirstPublishLocationId: opportunityId
+          };
+          console.log('[PAYLOAD]', {
+            ...payload,
+            VersionData: payload.VersionData.substring(0, 30) + '...'
           });
+          const contentVersion = await conn.sobject('ContentVersion').create(payload);
           if (contentVersion.success) {
             console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
             uploadedFiles.push({
