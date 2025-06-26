@@ -702,7 +702,7 @@
                 });
             }
 
-            // --- Updated file handling: deduplicate files only within each field ---
+            // --- Updated file handling: only upload the first file for each field ---
             const fileInputs = new Set();
             form.querySelectorAll('input[type="file"]').forEach(input => fileInputs.add(input));
             if (ownersDetailsSection) {
@@ -711,16 +711,9 @@
 
             fileInputs.forEach(input => {
                 if (input.files.length > 0) {
-                    const seenFiles = new Set();
-                    for (let i = 0; i < input.files.length; i++) {
-                        const file = input.files[i];
-                        const fileKey = `${file.name}|${file.size}|${file.lastModified}`;
-                        if (!seenFiles.has(fileKey)) {
-                            seenFiles.add(fileKey);
-                            console.log(`Appending file: ${input.name} = ${file.name}`);
-                            formData.append(input.name, file);
-                        }
-                    }
+                    const file = input.files[0];
+                    console.log(`Appending file: ${input.name} = ${file.name}`);
+                    formData.append(input.name, file);
                 }
             });
             // --- End updated file handling ---
