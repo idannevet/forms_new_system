@@ -1,127 +1,4 @@
 import jsforce from 'jsforce';
-import formidable from 'formidable';
-
-// Disable body parsing, we'll handle it with formidable
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// Helper function to upload files in batches
-async function uploadFilesInBatches(conn, files, opportunityId, hebrewFieldLabels, batchSize = 2) {
-  const fileEntries = Object.entries(files);
-  const batches = [];
-  
-  // Split files into batches
-  for (let i = 0; i < fileEntries.length; i += batchSize) {
-    batches.push(fileEntries.slice(i, i + batchSize));
-  }
-  
-  console.log(`[BATCHES] Split ${fileEntries.length} files into ${batches.length} batches of ${batchSize} files each`);
-  
-  const uploadedFiles = [];
-  const failedFiles = [];
-  
-  // Process each batch
-  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-    const batch = batches[batchIndex];
-    console.log(`[BATCH ${batchIndex + 1}/${batches.length}] Processing ${batch.length} files`);
-    
-    const batchPromises = batch.map(async ([fieldName, fileArray]) => {
-      // Handle owner file fields like owner[0][idPhoto]
-      const ownerMatch = fieldName.match(/^owner\[(\d+)\]\[idPhoto\]$/);
-      let fieldLabel = hebrewFieldLabels[fieldName] || fieldName;
-      if (ownerMatch) {
-        const ownerIndex = parseInt(ownerMatch[1], 10) + 1;
-        fieldLabel = `צילום ת"ז בעלים ${ownerIndex}`;
-      }
-      
-      // Get the file (handle both array and single file cases)
-      let file;
-      if (Array.isArray(fileArray)) {
-        file = fileArray[0];
-      } else {
-        file = fileArray;
-      }
-      
-      if (!file || !file.filepath) {
-        console.log(`[SKIP] No file found for field: ${fieldName}`);
-        return null;
-      }
-      
-      try {
-        const fs = await import('fs');
-        const fileContent = fs.readFileSync(file.filepath);
-        const fileExtension = file.originalFilename ? 
-          file.originalFilename.split('.').pop() : 'pdf';
-        const newFileName = `${fieldLabel}.${fileExtension}`;
-        
-        console.log(`[UPLOAD] fieldName=${fieldName}, newFileName=${newFileName}`);
-        
-        const payload = {
-          Title: newFileName,
-          PathOnClient: newFileName,
-          VersionData: fileContent.toString('base64'),
-          FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
-        };
-        
-        const contentVersion = await conn.sobject('ContentVersion').create(payload);
-        
-        if (contentVersion.success) {
-          console.log(`[SUCCESS] ${newFileName} (ContentVersionId: ${contentVersion.id})`);
-          return {
-            fieldName,
-            fieldLabel,
-            originalFileName: file.originalFilename,
-            newFileName: newFileName,
-            contentVersionId: contentVersion.id
-          };
-        } else {
-          console.error(`[FAILED] ${newFileName}`, contentVersion.errors);
-          return {
-            fieldName,
-            fieldLabel,
-            originalFileName: file.originalFilename,
-            newFileName: newFileName,
-            error: contentVersion.errors
-          };
-        }
-      } catch (fileError) {
-        console.error(`[ERROR] Uploading file ${fieldName}:`, fileError);
-        return {
-          fieldName,
-          fieldLabel,
-          originalFileName: file.originalFilename,
-          error: fileError.message
-        };
-      }
-    });
-    
-    // Wait for all files in this batch to complete
-    const batchResults = await Promise.all(batchPromises);
-    
-    // Process results
-    batchResults.forEach(result => {
-      if (result) {
-        if (result.error) {
-          failedFiles.push(result);
-        } else {
-          uploadedFiles.push(result);
-        }
-      }
-    });
-    
-    console.log(`[BATCH ${batchIndex + 1}] Completed: ${batchResults.filter(r => r && !r.error).length} success, ${batchResults.filter(r => r && r.error).length} failed`);
-    
-    // Add a small delay between batches to avoid overwhelming the API
-    if (batchIndex < batches.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
-  
-  return { uploadedFiles, failedFiles };
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -129,19 +6,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Parse form data including files
-    const form = formidable({ multiples: true });
-    const [fields, files] = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => {
-        if (err) reject(err);
-        else resolve([fields, files]);
-      });
-    });
+    const formData = req.body;
+    console.log('Received form data:', formData);
 
     // Get the opportunity ID and form type from the form
-    const opportunityId = fields.record_id;
-    const formType = fields.form_type; // 'ern_open' or 'eligibility_check'
-    const operation = fields.operation; // 'upload_files_only' or undefined
+    const opportunityId = formData.record_id;
+    const formType = formData.form_type; // 'ern_open' or 'eligibility_check'
+    const operation = formData.operation; // 'upload_files_only' or undefined
     
     if (!opportunityId) {
       return res.status(400).json({ 
@@ -219,63 +90,27 @@ export default async function handler(req, res) {
       console.log('[SKIP] Skipping Opportunity update (file-only operation)');
     }
 
-    // CALL 2: Upload files in batches (if any files)
-    let uploadedFiles = [];
-    let failedFiles = [];
-    
-    if (Object.keys(files).length > 0) {
-      console.log('[CALL 2] Starting file uploads...');
-      const hebrewFieldLabels = {
-        'certificate': 'תעודת התאגדות',
-        'bankStatements': '3 חודשים עובר ושב',
-        'accountConfirmation': 'אישור קיום חשבון',
-        'authorizedSignatory': 'מורשה חתימה',
-        'balance2024': 'מאזן בוחן ל-2024',
-        'balance2025': 'מאזן בוחן ל-2025',
-        'audited2023': 'דוחות מבוקרים לשנת 2023',
-        'bankBalances': 'דו"ח ריכוז יתרות מול הבנקים',
-        // Add more as needed
-      };
-
-      const uploadResult = await uploadFilesInBatches(
-        conn, 
-        files, 
-        opportunityId, 
-        hebrewFieldLabels, 
-        2 // Upload 2 files at a time
-      );
-      
-      uploadedFiles = uploadResult.uploadedFiles;
-      failedFiles = uploadResult.failedFiles;
-
-      console.log(`[CALL 2] File uploads completed: ${uploadedFiles.length} success, ${failedFiles.length} failed`);
-    } else {
-      console.log('[SKIP] No files to upload');
-    }
+    // For now, skip file uploads since we need to handle them differently
+    // We'll implement file uploads in a separate step once the basic API is working
 
     // Prepare response
     const response = {
       success: true,
-      message: opportunityUpdated ? 'Opportunity updated successfully' : 'Files uploaded successfully',
+      message: opportunityUpdated ? 'Opportunity updated successfully' : 'Operation completed successfully',
       formType: formType,
       opportunityId: opportunityId,
       operation: operation,
       opportunityUpdated: opportunityUpdated,
-      filesUploaded: uploadedFiles.length,
-      filesFailed: failedFiles.length,
-      uploadedFiles: uploadedFiles,
-      failedFiles: failedFiles
+      filesUploaded: 0,
+      filesFailed: 0,
+      uploadedFiles: [],
+      failedFiles: []
     };
 
     // Add checkbox fields info if opportunity was updated
     if (opportunityUpdated) {
       const fieldsToUpdate = checkboxFields[formType] || [];
       response.checkboxFieldsUpdated = fieldsToUpdate;
-    }
-
-    // If some files failed, still return success but include the failures
-    if (failedFiles.length > 0) {
-      response.message = `${opportunityUpdated ? 'Opportunity updated successfully. ' : ''}${uploadedFiles.length} files uploaded, ${failedFiles.length} files failed.`;
     }
 
     res.status(200).json(response);

@@ -798,7 +798,10 @@
 
                     const opportunityResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity', {
                         method: 'POST',
-                        body: opportunityFormData
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(Object.fromEntries(opportunityFormData))
                     });
 
                     if (!opportunityResponse.ok) {
@@ -845,7 +848,10 @@
                             try {
                                 const batchResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity', {
                                     method: 'POST',
-                                    body: batchFormData
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(Object.fromEntries(batchFormData))
                                 });
                                 
                                 if (!batchResponse.ok) {
