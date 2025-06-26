@@ -97,27 +97,26 @@ export default async function handler(req, res) {
     // Log all received file field names for debugging
     console.log('[FILES] Received file fields:', Object.keys(files));
 
-    // Handle file uploads with field labels as filenames
-    const uploadedFiles = [];
-    const fieldLabels = {
-      'certificate': 'Certificate',
-      'bankStatements': 'Bank Statements',
-      'accountConfirmation': 'Account Confirmation',
-      'authorizedSignatory': 'Authorized Signatory',
-      'balance2024': 'Balance 2024',
-      'balance2025': 'Balance 2025',
-      'audited2023': 'Audited 2023',
-      'bankBalances': 'Bank Balances',
-      // Add more as needed for your form
+    // Hebrew field labels for file names
+    const hebrewFieldLabels = {
+      'certificate': 'תעודת התאגדות',
+      'bankStatements': '3 חודשים עובר ושב',
+      'accountConfirmation': 'אישור קיום חשבון',
+      'authorizedSignatory': 'מורשה חתימה',
+      'balance2024': 'מאזן בוחן ל-2024',
+      'balance2025': 'מאזן בוחן ל-2025',
+      'audited2023': 'דוחות מבוקרים לשנת 2023',
+      'bankBalances': 'דו"ח ריכוז יתרות מול הבנקים',
+      // Add more as needed
     };
-
+    const generatedFileNames = [];
     for (const [fieldName, fileArray] of Object.entries(files)) {
       // Handle owner file fields like owner[0][idPhoto]
       const ownerMatch = fieldName.match(/^owner\[(\d+)\]\[idPhoto\]$/);
-      let fieldLabel = fieldLabels[fieldName] || fieldName;
+      let fieldLabel = hebrewFieldLabels[fieldName] || fieldName;
       if (ownerMatch) {
         const ownerIndex = parseInt(ownerMatch[1], 10) + 1;
-        fieldLabel = `Owner ${ownerIndex} ID Photo`;
+        fieldLabel = `צילום ת"ז בעלים ${ownerIndex}`;
       }
       if (Array.isArray(fileArray)) {
         for (const file of fileArray) {
@@ -128,6 +127,7 @@ export default async function handler(req, res) {
               const fileExtension = file.originalFilename ? 
                 file.originalFilename.split('.').pop() : 'pdf';
               const newFileName = `${fieldLabel}.${fileExtension}`;
+              generatedFileNames.push(newFileName);
               console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
               const payload = {
                 Title: newFileName,
@@ -165,6 +165,7 @@ export default async function handler(req, res) {
           const fileExtension = file.originalFilename ? 
             file.originalFilename.split('.').pop() : 'pdf';
           const newFileName = `${fieldLabel}.${fileExtension}`;
+          generatedFileNames.push(newFileName);
           console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
           const payload = {
             Title: newFileName,
@@ -194,6 +195,8 @@ export default async function handler(req, res) {
         }
       }
     }
+    // Log all generated file names for debugging
+    console.log('[FILES] Generated file names:', generatedFileNames);
 
     res.status(200).json({ 
       success: true, 
