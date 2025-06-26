@@ -94,27 +94,24 @@ export default async function handler(req, res) {
       });
     }
 
+    // Log all received file field names for debugging
+    console.log('[FILES] Received file fields:', Object.keys(files));
+
     // Handle file uploads with field labels as filenames
     const uploadedFiles = [];
     const fieldLabels = {
-      // ERN Open form field labels
-      'business_name': 'Business Name',
-      'owner_email': 'Owner Email',
-      'owner_phone': 'Owner Phone',
-      'owner_id': 'Owner ID',
-      'bank_statement': 'Bank Statement',
-      'federal_document': 'Federal Document',
-      'signature_document': 'Signature Document',
-      
-      // Eligibility Check form field labels
-      'company_doc_2023': 'Company Document 2023',
-      'company_doc_2024': 'Company Document 2024', 
-      'company_doc_2025': 'Company Document 2025',
-      'ricuz_document': 'Ricuz Document',
-      'federal_doc': 'Federal Document',
-      'owner_id_doc': 'Owner ID Document',
-      'signature_doc': 'Signature Document',
-      'bank_valid_doc': 'Bank Validation Document'
+      // ERN Open form field labels (actual HTML names)
+      'certificate': 'Certificate',
+      'bankStatements': 'Bank Statements',
+      'accountConfirmation': 'Account Confirmation',
+      'authorizedSignatory': 'Authorized Signatory',
+      'owner_idPhoto': 'Owner ID Photo',
+      // Eligibility Check form field labels (add as needed)
+      'balance2024': 'Balance 2024',
+      'balance2025': 'Balance 2025',
+      'audited2023': 'Audited 2023',
+      'bankBalances': 'Bank Balances',
+      // Add more as needed for your form
     };
 
     for (const [fieldName, fileArray] of Object.entries(files)) {
