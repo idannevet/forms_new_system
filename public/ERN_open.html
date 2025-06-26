@@ -702,19 +702,24 @@
                 });
             }
 
-            // --- Updated file handling: support multiple files and prevent duplicates ---
-            // Collect all file inputs (from both main form and ownersDetailsSection)
+            // --- Updated file handling: capture all files, prevent duplicates ---
             const fileInputs = new Set();
             form.querySelectorAll('input[type="file"]').forEach(input => fileInputs.add(input));
             if (ownersDetailsSection) {
                 ownersDetailsSection.querySelectorAll('input[type="file"]').forEach(input => fileInputs.add(input));
             }
 
+            const seenFiles = new Set();
             fileInputs.forEach(input => {
                 if (input.name && input.files.length > 0) {
                     for (let i = 0; i < input.files.length; i++) {
-                        console.log(`Appending file: ${input.name} = ${input.files[i].name}`);
-                        formData.append(input.name, input.files[i]);
+                        const file = input.files[i];
+                        const fileKey = `${input.name}|${file.name}|${file.size}|${file.lastModified}`;
+                        if (!seenFiles.has(fileKey)) {
+                            seenFiles.add(fileKey);
+                            console.log(`Appending file: ${input.name} = ${file.name}`);
+                            formData.append(input.name, file);
+                        }
                     }
                 }
             });
