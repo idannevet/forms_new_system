@@ -8,6 +8,121 @@ export const config = {
   },
 };
 
+// Helper function to upload files in batches
+async function uploadFilesInBatches(conn, files, opportunityId, hebrewFieldLabels, batchSize = 2) {
+  const fileEntries = Object.entries(files);
+  const batches = [];
+  
+  // Split files into batches
+  for (let i = 0; i < fileEntries.length; i += batchSize) {
+    batches.push(fileEntries.slice(i, i + batchSize));
+  }
+  
+  console.log(`[BATCHES] Split ${fileEntries.length} files into ${batches.length} batches of ${batchSize} files each`);
+  
+  const uploadedFiles = [];
+  const failedFiles = [];
+  
+  // Process each batch
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+    console.log(`[BATCH ${batchIndex + 1}/${batches.length}] Processing ${batch.length} files`);
+    
+    const batchPromises = batch.map(async ([fieldName, fileArray]) => {
+      // Handle owner file fields like owner[0][idPhoto]
+      const ownerMatch = fieldName.match(/^owner\[(\d+)\]\[idPhoto\]$/);
+      let fieldLabel = hebrewFieldLabels[fieldName] || fieldName;
+      if (ownerMatch) {
+        const ownerIndex = parseInt(ownerMatch[1], 10) + 1;
+        fieldLabel = `צילום ת"ז בעלים ${ownerIndex}`;
+      }
+      
+      // Get the file (handle both array and single file cases)
+      let file;
+      if (Array.isArray(fileArray)) {
+        file = fileArray[0];
+      } else {
+        file = fileArray;
+      }
+      
+      if (!file || !file.filepath) {
+        console.log(`[SKIP] No file found for field: ${fieldName}`);
+        return null;
+      }
+      
+      try {
+        const fs = await import('fs');
+        const fileContent = fs.readFileSync(file.filepath);
+        const fileExtension = file.originalFilename ? 
+          file.originalFilename.split('.').pop() : 'pdf';
+        const newFileName = `${fieldLabel}.${fileExtension}`;
+        
+        console.log(`[UPLOAD] fieldName=${fieldName}, newFileName=${newFileName}`);
+        
+        const payload = {
+          Title: newFileName,
+          PathOnClient: newFileName,
+          VersionData: fileContent.toString('base64'),
+          FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
+        };
+        
+        const contentVersion = await conn.sobject('ContentVersion').create(payload);
+        
+        if (contentVersion.success) {
+          console.log(`[SUCCESS] ${newFileName} (ContentVersionId: ${contentVersion.id})`);
+          return {
+            fieldName,
+            fieldLabel,
+            originalFileName: file.originalFilename,
+            newFileName: newFileName,
+            contentVersionId: contentVersion.id
+          };
+        } else {
+          console.error(`[FAILED] ${newFileName}`, contentVersion.errors);
+          return {
+            fieldName,
+            fieldLabel,
+            originalFileName: file.originalFilename,
+            newFileName: newFileName,
+            error: contentVersion.errors
+          };
+        }
+      } catch (fileError) {
+        console.error(`[ERROR] Uploading file ${fieldName}:`, fileError);
+        return {
+          fieldName,
+          fieldLabel,
+          originalFileName: file.originalFilename,
+          error: fileError.message
+        };
+      }
+    });
+    
+    // Wait for all files in this batch to complete
+    const batchResults = await Promise.all(batchPromises);
+    
+    // Process results
+    batchResults.forEach(result => {
+      if (result) {
+        if (result.error) {
+          failedFiles.push(result);
+        } else {
+          uploadedFiles.push(result);
+        }
+      }
+    });
+    
+    console.log(`[BATCH ${batchIndex + 1}] Completed: ${batchResults.filter(r => r && !r.error).length} success, ${batchResults.filter(r => r && r.error).length} failed`);
+    
+    // Add a small delay between batches to avoid overwhelming the API
+    if (batchIndex < batches.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  
+  return { uploadedFiles, failedFiles };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -72,7 +187,8 @@ export default async function handler(req, res) {
       ]
     };
 
-    // Prepare field updates for the Opportunity
+    // CALL 1: Update the Opportunity record
+    console.log('[CALL 1] Updating Opportunity record...');
     const opportunityUpdates = {
       Id: opportunityId
     };
@@ -83,7 +199,6 @@ export default async function handler(req, res) {
       opportunityUpdates[field] = true;
     });
 
-    // Update the Opportunity record
     const updateResult = await conn.sobject('Opportunity').update(opportunityUpdates);
     
     if (!updateResult.success) {
@@ -93,11 +208,11 @@ export default async function handler(req, res) {
         details: updateResult.errors 
       });
     }
+    
+    console.log('[CALL 1] Opportunity updated successfully');
 
-    // Log all received file field names for debugging
-    console.log('[FILES] Received file fields:', Object.keys(files));
-
-    // Hebrew field labels for file names
+    // CALL 2: Upload files in batches
+    console.log('[CALL 2] Starting file uploads...');
     const hebrewFieldLabels = {
       'certificate': 'תעודת התאגדות',
       'bankStatements': '3 חודשים עובר ושב',
@@ -109,106 +224,36 @@ export default async function handler(req, res) {
       'bankBalances': 'דו"ח ריכוז יתרות מול הבנקים',
       // Add more as needed
     };
-    const generatedFileNames = [];
-    const uploadedFiles = [];
-    for (const [fieldName, fileArray] of Object.entries(files)) {
-      // Handle owner file fields like owner[0][idPhoto]
-      const ownerMatch = fieldName.match(/^owner\[(\d+)\]\[idPhoto\]$/);
-      let fieldLabel = hebrewFieldLabels[fieldName] || fieldName;
-      if (ownerMatch) {
-        const ownerIndex = parseInt(ownerMatch[1], 10) + 1;
-        fieldLabel = `צילום ת"ז בעלים ${ownerIndex}`;
-      }
-      // Only process the first file for each field
-      if (Array.isArray(fileArray)) {
-        // Only process the first file in the array
-        const file = fileArray[0];
-        if (file && file.filepath) {
-          try {
-            const fs = await import('fs');
-            const fileContent = fs.readFileSync(file.filepath);
-            const fileExtension = file.originalFilename ? 
-              file.originalFilename.split('.').pop() : 'pdf';
-            const newFileName = `${fieldLabel}.${fileExtension}`;
-            generatedFileNames.push(newFileName);
-            console.log(`[PROCESS] fieldName=${fieldName}, newFileName=${newFileName}`);
-            const payload = {
-              Title: newFileName,
-              PathOnClient: newFileName,
-              VersionData: fileContent.toString('base64'),
-              FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
-            };
-            console.log('[PAYLOAD]', {
-              ...payload,
-              VersionData: payload.VersionData.substring(0, 30) + '...'
-            });
-            const contentVersion = await conn.sobject('ContentVersion').create(payload);
-            if (contentVersion.success) {
-              console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
-              uploadedFiles.push({
-                fieldName,
-                fieldLabel,
-                originalFileName: file.originalFilename,
-                newFileName: newFileName,
-                contentVersionId: contentVersion.id
-              });
-            } else {
-              console.error(`[UPLOAD] Failed: ${newFileName}`, contentVersion.errors);
-            }
-          } catch (fileError) {
-            console.error(`[UPLOAD] Error uploading file ${fieldName}:`, fileError);
-          }
-        }
-      } else if (fileArray && fileArray.filepath) {
-        const file = fileArray;
-        try {
-          const fs = await import('fs');
-          const fileContent = fs.readFileSync(file.filepath);
-          const fileExtension = file.originalFilename ? 
-            file.originalFilename.split('.').pop() : 'pdf';
-          const newFileName = `${fieldLabel}.${fileExtension}`;
-          generatedFileNames.push(newFileName);
-          console.log(`[PROCESS] fieldName=${fieldName}, newFileName=${newFileName}`);
-          const payload = {
-            Title: newFileName,
-            PathOnClient: newFileName,
-            VersionData: fileContent.toString('base64'),
-            FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
-          };
-          console.log('[PAYLOAD]', {
-            ...payload,
-            VersionData: payload.VersionData.substring(0, 30) + '...'
-          });
-          const contentVersion = await conn.sobject('ContentVersion').create(payload);
-          if (contentVersion.success) {
-            console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
-            uploadedFiles.push({
-              fieldName,
-              fieldLabel,
-              originalFileName: file.originalFilename,
-              newFileName: newFileName,
-              contentVersionId: contentVersion.id
-            });
-          } else {
-            console.error(`[UPLOAD] Failed: ${newFileName}`, contentVersion.errors);
-          }
-        } catch (fileError) {
-          console.error(`[UPLOAD] Error uploading file ${fieldName}:`, fileError);
-        }
-      }
-    }
-    // Log all generated file names for debugging
-    console.log('[FILES] Generated file names:', generatedFileNames);
 
-    res.status(200).json({ 
-      success: true, 
+    const { uploadedFiles, failedFiles } = await uploadFilesInBatches(
+      conn, 
+      files, 
+      opportunityId, 
+      hebrewFieldLabels, 
+      2 // Upload 2 files at a time
+    );
+
+    console.log(`[CALL 2] File uploads completed: ${uploadedFiles.length} success, ${failedFiles.length} failed`);
+
+    // Prepare response
+    const response = {
+      success: true,
       message: 'Opportunity updated successfully',
       formType: formType,
       opportunityId: opportunityId,
       checkboxFieldsUpdated: fieldsToUpdate,
       filesUploaded: uploadedFiles.length,
-      uploadedFiles: uploadedFiles
-    });
+      filesFailed: failedFiles.length,
+      uploadedFiles: uploadedFiles,
+      failedFiles: failedFiles
+    };
+
+    // If some files failed, still return success but include the failures
+    if (failedFiles.length > 0) {
+      response.message = `Opportunity updated successfully. ${uploadedFiles.length} files uploaded, ${failedFiles.length} files failed.`;
+    }
+
+    res.status(200).json(response);
 
   } catch (error) {
     console.error('Error updating opportunity:', error);
