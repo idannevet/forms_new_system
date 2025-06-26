@@ -133,7 +133,7 @@ export default async function handler(req, res) {
                 Title: newFileName,
                 PathOnClient: newFileName,
                 VersionData: fileContent.toString('base64'),
-                FirstPublishLocationId: opportunityId
+                FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
               };
               console.log('[PAYLOAD]', {
                 ...payload,
@@ -170,7 +170,7 @@ export default async function handler(req, res) {
             Title: newFileName,
             PathOnClient: newFileName,
             VersionData: fileContent.toString('base64'),
-            FirstPublishLocationId: opportunityId
+            FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
           };
           console.log('[PAYLOAD]', {
             ...payload,

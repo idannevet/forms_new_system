@@ -740,6 +740,10 @@
             }
 
             // שליחה ישירה של FormData (כולל קבצים) ל-API
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.textContent = 'שולח...';
             fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity.js', {
                 method: 'POST',
                 body: formData // שליחה כ-FormData כדי לתמוך בקבצים
@@ -748,6 +752,11 @@
             .then(data => {
                 if (data.success) {
                     console.log('Files uploaded:', data.filesUploaded, data.uploadedFiles);
+                    submitBtn.textContent = '✔';
+                    setTimeout(() => {
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                    }, 2000);
                     alert('הטופס נשלח בהצלחה!');
                     form.reset();
                     showStep(0);
@@ -758,6 +767,8 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
                 alert('שגיאה בשליחת הטופס. אנא נסה שנית או פנה לתמיכה');
             });
         }
