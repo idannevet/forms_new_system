@@ -119,45 +119,44 @@ export default async function handler(req, res) {
         const ownerIndex = parseInt(ownerMatch[1], 10) + 1;
         fieldLabel = `צילום ת"ז בעלים ${ownerIndex}`;
       }
-      // Only process as array if it's an array, else as single file, not both
+      // Only process the first file for each field
       if (Array.isArray(fileArray)) {
-        for (let idx = 0; idx < fileArray.length; idx++) {
-          const file = fileArray[idx];
-          if (file && file.filepath) {
-            try {
-              const fs = await import('fs');
-              const fileContent = fs.readFileSync(file.filepath);
-              const fileExtension = file.originalFilename ? 
-                file.originalFilename.split('.').pop() : 'pdf';
-              const newFileName = `${fieldLabel}${fileArray.length > 1 ? `_${idx+1}` : ''}.${fileExtension}`;
-              generatedFileNames.push(newFileName);
-              console.log(`[PROCESS] fieldName=${fieldName}, idx=${idx}, newFileName=${newFileName}`);
-              const payload = {
-                Title: newFileName,
-                PathOnClient: newFileName,
-                VersionData: fileContent.toString('base64'),
-                FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
-              };
-              console.log('[PAYLOAD]', {
-                ...payload,
-                VersionData: payload.VersionData.substring(0, 30) + '...'
+        // Only process the first file in the array
+        const file = fileArray[0];
+        if (file && file.filepath) {
+          try {
+            const fs = await import('fs');
+            const fileContent = fs.readFileSync(file.filepath);
+            const fileExtension = file.originalFilename ? 
+              file.originalFilename.split('.').pop() : 'pdf';
+            const newFileName = `${fieldLabel}.${fileExtension}`;
+            generatedFileNames.push(newFileName);
+            console.log(`[PROCESS] fieldName=${fieldName}, newFileName=${newFileName}`);
+            const payload = {
+              Title: newFileName,
+              PathOnClient: newFileName,
+              VersionData: fileContent.toString('base64'),
+              FirstPublishLocationId: Array.isArray(opportunityId) ? opportunityId[0] : opportunityId
+            };
+            console.log('[PAYLOAD]', {
+              ...payload,
+              VersionData: payload.VersionData.substring(0, 30) + '...'
+            });
+            const contentVersion = await conn.sobject('ContentVersion').create(payload);
+            if (contentVersion.success) {
+              console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
+              uploadedFiles.push({
+                fieldName,
+                fieldLabel,
+                originalFileName: file.originalFilename,
+                newFileName: newFileName,
+                contentVersionId: contentVersion.id
               });
-              const contentVersion = await conn.sobject('ContentVersion').create(payload);
-              if (contentVersion.success) {
-                console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
-                uploadedFiles.push({
-                  fieldName,
-                  fieldLabel,
-                  originalFileName: file.originalFilename,
-                  newFileName: newFileName,
-                  contentVersionId: contentVersion.id
-                });
-              } else {
-                console.error(`[UPLOAD] Failed: ${newFileName}`, contentVersion.errors);
-              }
-            } catch (fileError) {
-              console.error(`[UPLOAD] Error uploading file ${fieldName}:`, fileError);
+            } else {
+              console.error(`[UPLOAD] Failed: ${newFileName}`, contentVersion.errors);
             }
+          } catch (fileError) {
+            console.error(`[UPLOAD] Error uploading file ${fieldName}:`, fileError);
           }
         }
       } else if (fileArray && fileArray.filepath) {
