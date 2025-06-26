@@ -786,10 +786,12 @@
                     // Add owner data
                     if (ownersDetailsSection) {
                         const ownerElements = ownersDetailsSection.elements;
-                        for (let i = 0; i < ownerElements.length; i++) {
-                            const element = ownerElements[i];
-                            if (element.type !== 'file' && element.name && element.value) {
-                                opportunityFormData.append(element.name, element.value);
+                        if (ownerElements) {
+                            for (let i = 0; i < ownerElements.length; i++) {
+                                const element = ownerElements[i];
+                                if (element.type !== 'file' && element.name && element.value) {
+                                    opportunityFormData.append(element.name, element.value);
+                                }
                             }
                         }
                     }
