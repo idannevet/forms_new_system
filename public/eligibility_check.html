@@ -741,6 +741,10 @@
         function handleSubmit(event) {
             event.preventDefault();
             const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.textContent = 'שולח...';
             const formData = new FormData(form);
 
             // הוסף את record_id מה-URL אם קיים
@@ -811,6 +815,8 @@
             }
 
             if (hasFileError) {
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
                 alert('יש לבחור קבצים בכל השדות הנדרשים');
                 return;
             }
@@ -823,6 +829,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    submitBtn.textContent = '✔';
+                    setTimeout(() => {
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                    }, 2000);
                     console.log('Files uploaded:', data.filesUploaded, data.uploadedFiles);
                     alert('הטופס נשלח בהצלחה!');
                     form.reset();
@@ -834,6 +845,8 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
                 alert('שגיאה בשליחת הטופס. אנא נסה שנית או פנה לתמיכה');
             });
         }
