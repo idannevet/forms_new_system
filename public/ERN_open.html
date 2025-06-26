@@ -702,7 +702,7 @@
                 });
             }
 
-            // --- Updated file handling: capture all files, prevent duplicates ---
+            // --- Updated file handling: capture all files, prevent duplicates globally ---
             const fileInputs = new Set();
             form.querySelectorAll('input[type="file"]').forEach(input => fileInputs.add(input));
             if (ownersDetailsSection) {
@@ -711,10 +711,10 @@
 
             const seenFiles = new Set();
             fileInputs.forEach(input => {
-                if (input.name && input.files.length > 0) {
+                if (input.files.length > 0) {
                     for (let i = 0; i < input.files.length; i++) {
                         const file = input.files[i];
-                        const fileKey = `${input.name}|${file.name}|${file.size}|${file.lastModified}`;
+                        const fileKey = `${file.name}|${file.size}|${file.lastModified}`;
                         if (!seenFiles.has(fileKey)) {
                             seenFiles.add(fileKey);
                             console.log(`Appending file: ${input.name} = ${file.name}`);
