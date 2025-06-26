@@ -697,6 +697,7 @@
                     inputs.forEach(input => {
                         if (input.name && input.value) {
                             if (input.type === 'file' && input.files.length > 0) {
+                                console.log(`Appending owner file: ${input.name} = ${input.files[0].name}`);
                                 formData.append(input.name, input.files[0]);
                             } else if (input.type !== 'file') {
                                 formData.append(input.name, input.value);
@@ -721,6 +722,10 @@
                     if (errorElement) {
                         errorElement.style.display = 'none';
                     }
+                }
+                // לוג לקבצים של הטופס הראשי
+                if (input.files.length > 0) {
+                    console.log(`Main form file: ${input.name} = ${input.files[0].name}`);
                 }
             });
 
@@ -891,6 +896,8 @@
                     ownersDetailsSection.appendChild(formBlock.cloneNode(true));
                 });
                 ownerPopup.style.display = 'none';
+                // נקה את הפופאפ כדי למנוע כפילויות
+                ownerPopupForm.innerHTML = '';
             };
         });
 
