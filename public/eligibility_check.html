@@ -857,7 +857,7 @@
                         }
                     }
 
-                    const opportunityResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity', {
+                    const opportunityResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity-simple', {
                         method: 'POST',
                         body: opportunityFormData
                     });
@@ -904,7 +904,7 @@
                             });
                             
                             try {
-                                const batchResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity', {
+                                const batchResponse = await fetch('https://buy-bekalut-forms.vercel.app/api/update-opportunity-simple', {
                                     method: 'POST',
                                     body: batchFormData
                                 });
