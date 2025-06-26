@@ -100,13 +100,10 @@ export default async function handler(req, res) {
     // Handle file uploads with field labels as filenames
     const uploadedFiles = [];
     const fieldLabels = {
-      // ERN Open form field labels (actual HTML names)
       'certificate': 'Certificate',
       'bankStatements': 'Bank Statements',
       'accountConfirmation': 'Account Confirmation',
       'authorizedSignatory': 'Authorized Signatory',
-      'owner_idPhoto': 'Owner ID Photo',
-      // Eligibility Check form field labels (add as needed)
       'balance2024': 'Balance 2024',
       'balance2025': 'Balance 2025',
       'audited2023': 'Audited 2023',
@@ -115,17 +112,23 @@ export default async function handler(req, res) {
     };
 
     for (const [fieldName, fileArray] of Object.entries(files)) {
+      // Handle owner file fields like owner[0][idPhoto]
+      const ownerMatch = fieldName.match(/^owner\[(\d+)\]\[idPhoto\]$/);
+      let fieldLabel = fieldLabels[fieldName] || fieldName;
+      if (ownerMatch) {
+        const ownerIndex = parseInt(ownerMatch[1], 10) + 1;
+        fieldLabel = `Owner ${ownerIndex} ID Photo`;
+      }
       if (Array.isArray(fileArray)) {
         for (const file of fileArray) {
           if (file && file.filepath) {
             try {
               const fs = await import('fs');
               const fileContent = fs.readFileSync(file.filepath);
-              const fieldLabel = fieldLabels[fieldName] || fieldName;
               const fileExtension = file.originalFilename ? 
                 file.originalFilename.split('.').pop() : 'pdf';
               const newFileName = `${fieldLabel}.${fileExtension}`;
-              console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
+              console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
               const contentVersion = await conn.sobject('ContentVersion').create({
                 Title: newFileName,
                 PathOnClient: newFileName,
@@ -136,6 +139,7 @@ export default async function handler(req, res) {
                 console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
                 uploadedFiles.push({
                   fieldName,
+                  fieldLabel,
                   originalFileName: file.originalFilename,
                   newFileName: newFileName,
                   contentVersionId: contentVersion.id
@@ -148,16 +152,15 @@ export default async function handler(req, res) {
             }
           }
         }
-      } else if (files[fieldName] && files[fieldName].filepath) {
-        const file = files[fieldName];
+      } else if (fileArray && fileArray.filepath) {
+        const file = fileArray;
         try {
           const fs = await import('fs');
           const fileContent = fs.readFileSync(file.filepath);
-          const fieldLabel = fieldLabels[fieldName] || fieldName;
           const fileExtension = file.originalFilename ? 
             file.originalFilename.split('.').pop() : 'pdf';
           const newFileName = `${fieldLabel}.${fileExtension}`;
-          console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
+          console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
           const contentVersion = await conn.sobject('ContentVersion').create({
             Title: newFileName,
             PathOnClient: newFileName,
@@ -168,6 +171,7 @@ export default async function handler(req, res) {
             console.log(`[UPLOAD] Success: ${newFileName} (ContentVersionId: ${contentVersion.id})`);
             uploadedFiles.push({
               fieldName,
+              fieldLabel,
               originalFileName: file.originalFilename,
               newFileName: newFileName,
               contentVersionId: contentVersion.id
