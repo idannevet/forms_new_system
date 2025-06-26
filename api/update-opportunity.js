@@ -110,6 +110,7 @@ export default async function handler(req, res) {
       // Add more as needed
     };
     const generatedFileNames = [];
+    const uploadedFiles = [];
     for (const [fieldName, fileArray] of Object.entries(files)) {
       // Handle owner file fields like owner[0][idPhoto]
       const ownerMatch = fieldName.match(/^owner\[(\d+)\]\[idPhoto\]$/);
@@ -118,17 +119,19 @@ export default async function handler(req, res) {
         const ownerIndex = parseInt(ownerMatch[1], 10) + 1;
         fieldLabel = `צילום ת"ז בעלים ${ownerIndex}`;
       }
+      // Only process as array if it's an array, else as single file, not both
       if (Array.isArray(fileArray)) {
-        for (const file of fileArray) {
+        for (let idx = 0; idx < fileArray.length; idx++) {
+          const file = fileArray[idx];
           if (file && file.filepath) {
             try {
               const fs = await import('fs');
               const fileContent = fs.readFileSync(file.filepath);
               const fileExtension = file.originalFilename ? 
                 file.originalFilename.split('.').pop() : 'pdf';
-              const newFileName = `${fieldLabel}.${fileExtension}`;
+              const newFileName = `${fieldLabel}${fileArray.length > 1 ? `_${idx+1}` : ''}.${fileExtension}`;
               generatedFileNames.push(newFileName);
-              console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
+              console.log(`[PROCESS] fieldName=${fieldName}, idx=${idx}, newFileName=${newFileName}`);
               const payload = {
                 Title: newFileName,
                 PathOnClient: newFileName,
@@ -166,7 +169,7 @@ export default async function handler(req, res) {
             file.originalFilename.split('.').pop() : 'pdf';
           const newFileName = `${fieldLabel}.${fileExtension}`;
           generatedFileNames.push(newFileName);
-          console.log(`[UPLOAD] Attempting to upload file: fieldName=${fieldName}, fieldLabel=${fieldLabel}, originalFileName=${file.originalFilename}, newFileName=${newFileName}`);
+          console.log(`[PROCESS] fieldName=${fieldName}, newFileName=${newFileName}`);
           const payload = {
             Title: newFileName,
             PathOnClient: newFileName,
