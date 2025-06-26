@@ -702,16 +702,16 @@
                 });
             }
 
-            // --- Updated file handling: capture all files, prevent duplicates globally ---
+            // --- Updated file handling: deduplicate files only within each field ---
             const fileInputs = new Set();
             form.querySelectorAll('input[type="file"]').forEach(input => fileInputs.add(input));
             if (ownersDetailsSection) {
                 ownersDetailsSection.querySelectorAll('input[type="file"]').forEach(input => fileInputs.add(input));
             }
 
-            const seenFiles = new Set();
             fileInputs.forEach(input => {
                 if (input.files.length > 0) {
+                    const seenFiles = new Set();
                     for (let i = 0; i < input.files.length; i++) {
                         const file = input.files[i];
                         const fileKey = `${file.name}|${file.size}|${file.lastModified}`;
