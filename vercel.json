@@ -21,6 +21,14 @@
       "dest": "/api/$1"
     },
     {
+      "src": "/employee-table.html",
+      "dest": "/public/employee-table.html"
+    },
+    {
+      "src": "/employees.html",
+      "dest": "/public/employees.html"
+    },
+    {
       "src": "/(.*\\.html)",
       "dest": "/public/$1"
     },
