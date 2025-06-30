@@ -58,6 +58,7 @@ export default async function handler(req, res) {
         if (existingContacts.length > 0) {
           // Use existing Contact
           contactId = existingContacts[0].Id;
+          console.log(`Existing contact found for phone ${employee.phoneNumber}: ${contactId}`);
         } else {
           // Create Contact record with AccountId and extra fields
           const contactData = {
@@ -70,12 +71,16 @@ export default async function handler(req, res) {
             title_level__c: 'נציג',
             Field1__c: 'עובד'
           };
+          console.log('Attempting to create contact with data:', contactData);
 
           const contactResult = await conn.sobject('Contact').create(contactData);
+          console.log('Salesforce contact creation result:', contactResult);
 
           if (contactResult.success) {
             contactId = contactResult.id;
+            console.log(`Contact created successfully: ${contactId}`);
           } else {
+            console.error('Failed to create contact:', contactResult.errors);
             errors.push({
               employee: employee,
               error: 'Failed to create contact',
