@@ -38,46 +38,61 @@ export default async function handler(req, res) {
     // Process each employee
     for (const employee of employees) {
       try {
-        // Create Contact record
-        const contactData = {
-          FirstName: employee.firstNameHebrew,
-          LastName: employee.lastNameHebrew,
-          Phone: employee.phoneNumber,
-          Email: employee.email,
-          JobTitle__c: 'עובד'
-        };
+        // Check for existing Contact by phone number
+        const existingContacts = await conn.sobject('Contact')
+          .find({ Phone: employee.phoneNumber }, 'Id')
+          .limit(1)
+          .execute();
 
-        const contactResult = await conn.sobject('Contact').create(contactData);
-
-        if (contactResult.success) {
-          // Create Opportunity Contact Role
-          const contactRoleData = {
-            OpportunityId: opportunityId,
-            ContactId: contactResult.id,
-            Role: 'Employee',
-            IsPrimary: false
+        let contactId;
+        if (existingContacts.length > 0) {
+          // Use existing Contact
+          contactId = existingContacts[0].Id;
+        } else {
+          // Create Contact record
+          const contactData = {
+            FirstName: employee.firstNameHebrew,
+            LastName: employee.lastNameHebrew,
+            Phone: employee.phoneNumber,
+            Email: employee.email,
+            JobTitle__c: 'עובד'
           };
 
-          const contactRoleResult = await conn.sobject('OpportunityContactRole').create(contactRoleData);
+          const contactResult = await conn.sobject('Contact').create(contactData);
 
-          if (contactRoleResult.success) {
-            results.push({
-              contactId: contactResult.id,
-              contactRoleId: contactRoleResult.id,
-              employee: employee
-            });
+          if (contactResult.success) {
+            contactId = contactResult.id;
           } else {
             errors.push({
               employee: employee,
-              error: 'Failed to create contact role',
-              details: contactRoleResult.errors
+              error: 'Failed to create contact',
+              details: contactResult.errors
             });
+            continue; // Skip to next employee
           }
+        }
+
+        // Create Opportunity Contact Role
+        const contactRoleData = {
+          OpportunityId: opportunityId,
+          ContactId: contactId,
+          Role: 'Employee',
+          IsPrimary: false
+        };
+
+        const contactRoleResult = await conn.sobject('OpportunityContactRole').create(contactRoleData);
+
+        if (contactRoleResult.success) {
+          results.push({
+            contactId: contactId,
+            contactRoleId: contactRoleResult.id,
+            employee: employee
+          });
         } else {
           errors.push({
             employee: employee,
-            error: 'Failed to create contact',
-            details: contactResult.errors
+            error: 'Failed to create contact role',
+            details: contactRoleResult.errors
           });
         }
       } catch (error) {
