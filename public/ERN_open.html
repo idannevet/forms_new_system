@@ -728,17 +728,21 @@
             }
 
             // אוסף את כל הנתונים מהטופס
-            const formData = {
-                record_id: recordId,
-                form_type: 'ern_open'
-            };
+            const formData = new FormData();
+            formData.append('record_id', recordId);
+            formData.append('form_type', 'ern_open');
 
             // הוסף את כל שדות הטופס הראשי
             const formElements = form.elements;
             for (let i = 0; i < formElements.length; i++) {
                 const element = formElements[i];
-                if (element.name && element.value && element.type !== 'file') {
-                    formData[element.name] = element.value;
+                if (element.name && element.type !== 'file') {
+                    formData.append(element.name, element.value);
+                } else if (element.name && element.type === 'file' && element.files.length > 0) {
+                    // Add files to FormData
+                    for (let j = 0; j < element.files.length; j++) {
+                        formData.append(element.name, element.files[j]);
+                    }
                 }
             }
 
@@ -748,8 +752,13 @@
                 ownerForms.forEach((ownerForm, index) => {
                     const inputs = ownerForm.querySelectorAll('input');
                     inputs.forEach(input => {
-                        if (input.name && input.value && input.type !== 'file') {
-                            formData[input.name] = input.value;
+                        if (input.name && input.type !== 'file') {
+                            formData.append(input.name, input.value);
+                        } else if (input.name && input.type === 'file' && input.files.length > 0) {
+                            // Add owner files to FormData
+                            for (let j = 0; j < input.files.length; j++) {
+                                formData.append(input.name, input.files[j]);
+                            }
                         }
                     });
                 });
@@ -760,12 +769,9 @@
                 try {
                     console.log('שולח נתונים ל-Salesforce...');
                     
-                    const response = await fetch('/api/update-opportunity.js', {
+                    const response = await fetch('/api/update-opportunity', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
+                        body: formData
                     });
 
                     if (!response.ok) {
