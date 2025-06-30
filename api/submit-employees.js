@@ -32,45 +32,25 @@ export default async function handler(req, res) {
       process.env.SALESFORCE_PASSWORD + process.env.SALESFORCE_SECURITY_TOKEN
     );
 
-    // Get the company (בית עסק) from the opportunity
-    const companyId = await getCompanyFromOpportunity(conn, opportunityId);
-    if (!companyId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Could not find related business (בית עסק) for this opportunity'
-      });
-    }
-
-    // Get the "עובדים" record type ID for contacts
-    const employeeRecordTypeId = await getEmployeeRecordTypeId(conn);
-
     const results = [];
     const errors = [];
-    const webhookData = {
-      opportunityId: opportunityId,
-      companyId: companyId,
-      employees: employees,
-      submissionDate: new Date().toISOString()
-    };
 
     // Process each employee
     for (const employee of employees) {
       try {
-        // Create Contact record with only the required fields
+        // Create Contact record
         const contactData = {
-          FirstName: employee.firstNameHebrew, // Hebrew first name
-          LastName: employee.lastNameHebrew,   // Hebrew last name
-          Phone: employee.phoneNumber,         // Phone number
-          Company__c: companyId,               // Lookup to בית עסק
-          JobTitle__c: 'עובד',                 // Picklist value
-          Email: employee.email,               // Email
-          RecordTypeId: employeeRecordTypeId   // עובדים record type
+          FirstName: employee.firstNameHebrew,
+          LastName: employee.lastNameHebrew,
+          Phone: employee.phoneNumber,
+          Email: employee.email,
+          JobTitle__c: 'עובד'
         };
 
         const contactResult = await conn.sobject('Contact').create(contactData);
 
         if (contactResult.success) {
-          // Create Opportunity Contact Role to link contact to opportunity
+          // Create Opportunity Contact Role
           const contactRoleData = {
             OpportunityId: opportunityId,
             ContactId: contactResult.id,
@@ -112,6 +92,12 @@ export default async function handler(req, res) {
 
     // Send data to webhook
     try {
+      const webhookData = {
+        opportunityId: opportunityId,
+        employees: employees,
+        submissionDate: new Date().toISOString()
+      };
+
       const webhookResponse = await fetch('https://hook.eu2.make.com/qgsdbc94kgk1fmlva2p1inqrmrrnraxl', {
         method: 'POST',
         headers: {
@@ -154,73 +140,5 @@ export default async function handler(req, res) {
       error: 'Internal server error',
       details: error.message
     });
-  }
-}
-
-// Helper function to get company (בית עסק) from opportunity
-async function getCompanyFromOpportunity(conn, opportunityId) {
-  try {
-    // Query the opportunity to get the related business (בית עסק)
-    // You may need to adjust the field name based on your Salesforce setup
-    const result = await conn.query(
-      `SELECT AccountId, Account.Name FROM Opportunity WHERE Id = '${opportunityId}' LIMIT 1`
-    );
-    
-    if (result.records.length > 0) {
-      return result.records[0].AccountId;
-    }
-    
-    // If AccountId is not the right field, try alternative field names
-    const alternativeFields = ['Business__c', 'Company__c', 'בית_עסק__c'];
-    for (const field of alternativeFields) {
-      try {
-        const altResult = await conn.query(
-          `SELECT ${field} FROM Opportunity WHERE Id = '${opportunityId}' LIMIT 1`
-        );
-        if (altResult.records.length > 0 && altResult.records[0][field]) {
-          return altResult.records[0][field];
-        }
-      } catch (fieldError) {
-        console.warn(`Field ${field} not found:`, fieldError.message);
-      }
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error getting company from opportunity:', error);
-    return null;
-  }
-}
-
-// Helper function to get "עובדים" Record Type ID for contacts
-async function getEmployeeRecordTypeId(conn) {
-  try {
-    // Query for the "עובדים" record type for Contact object
-    const result = await conn.query(
-      "SELECT Id FROM RecordType WHERE SObjectType = 'Contact' AND Name = 'עובדים' LIMIT 1"
-    );
-    
-    if (result.records.length > 0) {
-      return result.records[0].Id;
-    }
-    
-    // If "עובדים" record type not found, try alternative names
-    const alternativeNames = ['Employees', 'Employee', 'עובד'];
-    for (const name of alternativeNames) {
-      const altResult = await conn.query(
-        `SELECT Id FROM RecordType WHERE SObjectType = 'Contact' AND Name = '${name}' LIMIT 1`
-      );
-      if (altResult.records.length > 0) {
-        console.log(`Using alternative record type: ${name}`);
-        return altResult.records[0].Id;
-      }
-    }
-    
-    // If no specific record type found, return null to use default
-    console.warn('Could not find "עובדים" record type, using default Contact record type');
-    return null;
-  } catch (error) {
-    console.warn('Could not find Contact Record Type, using default:', error.message);
-    return null;
   }
 } 
