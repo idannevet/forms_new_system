@@ -35,6 +35,16 @@ export default async function handler(req, res) {
     const results = [];
     const errors = [];
 
+    // Get the company (AccountId) from the opportunity
+    const oppResult = await conn.sobject('Opportunity').retrieve(opportunityId);
+    const companyId = oppResult.AccountId;
+    if (!companyId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Could not find related company (Account) for this opportunity'
+      });
+    }
+
     // Process each employee
     for (const employee of employees) {
       try {
@@ -49,13 +59,16 @@ export default async function handler(req, res) {
           // Use existing Contact
           contactId = existingContacts[0].Id;
         } else {
-          // Create Contact record
+          // Create Contact record with AccountId and extra fields
           const contactData = {
             FirstName: employee.firstNameHebrew,
             LastName: employee.lastNameHebrew,
             Phone: employee.phoneNumber,
             Email: employee.email,
-            JobTitle__c: 'עובד'
+            JobTitle__c: 'עובד',
+            AccountId: companyId,
+            title_level__c: 'נציג',
+            Field1__c: 'עובד'
           };
 
           const contactResult = await conn.sobject('Contact').create(contactData);
