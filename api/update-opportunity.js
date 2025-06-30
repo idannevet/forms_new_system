@@ -90,7 +90,7 @@ export default async function handler(req, res) {
     // Define file field mappings for each form type
     const fileFieldMappings = {
       ern_open: {
-        'certificate': 'תעודה פדרלית',
+        'certificate': 'תעודת התאגדות',
         'bankStatements': 'דפי בנק 3 חודשים',
         'accountConfirmation': 'אישור חשבון בנק',
         'authorizedSignatory': 'חתימת בעלים',
@@ -178,65 +178,30 @@ export default async function handler(req, res) {
           if (uploadResult.success) {
             console.log(`File uploaded successfully: ${file.originalname}`);
             filesUploaded++;
-            uploadedFiles.push({
-              fieldName: fieldName,
-              displayName: displayName,
-              fileName: file.originalname,
-              contentVersionId: uploadResult.id
-            });
+            uploadedFiles.push(file.originalname);
           } else {
-            console.error(`Failed to upload file ${file.originalname}:`, uploadResult.errors);
             filesFailed++;
-            failedFiles.push({
-              fieldName: fieldName,
-              displayName: displayName,
-              fileName: file.originalname,
-              error: uploadResult.errors
-            });
+            failedFiles.push(file.originalname);
           }
-        } catch (fileError) {
-          console.error(`Error uploading file ${file.fieldname}:`, fileError);
+        } catch (error) {
           filesFailed++;
-          failedFiles.push({
-            fieldName: file.fieldname,
-            displayName: fileFieldMappings[formType]?.[file.fieldname] || file.fieldname,
-            fileName: file.originalname,
-            error: fileError.message
-          });
+          failedFiles.push(file.originalname);
         }
       }
-    } else {
-      console.log('[INFO] No files found in request');
     }
 
     // Prepare response
     const response = {
       success: true,
-      message: opportunityUpdated ? 'Opportunity updated successfully' : 'Operation completed successfully',
-      formType: formType,
-      opportunityId: opportunityId,
-      operation: operation,
-      opportunityUpdated: opportunityUpdated,
+      message: 'Files uploaded successfully',
       filesUploaded: filesUploaded,
       filesFailed: filesFailed,
       uploadedFiles: uploadedFiles,
       failedFiles: failedFiles
     };
 
-    // Add checkbox fields info if opportunity was updated
-    if (opportunityUpdated) {
-      const fieldsToUpdate = checkboxFields[formType] || [];
-      response.checkboxFieldsUpdated = fieldsToUpdate;
-    }
-
-    res.status(200).json(response);
-
+    return res.status(200).json(response);
   } catch (error) {
-    console.error('Error updating opportunity:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error',
-      details: error.message 
-    });
+    return res.status(500).json({ error: 'An error occurred' });
   }
 }
