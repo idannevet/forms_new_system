@@ -37,6 +37,9 @@ export default async function handler(req, res) {
     console.log('Received form data:', formData);
     console.log('Received files:', files.map(f => ({ name: f.fieldname, filename: f.originalname })));
 
+    // Debug: log all received files and their field names
+    console.log('All received files:', files.map(f => ({ field: f.fieldname, name: f.originalname })));
+
     // Get the opportunity ID and form type from the form
     const opportunityId = formData.record_id;
     const formType = formData.form_type; // 'ern_open' or 'eligibility_check'
@@ -159,30 +162,46 @@ export default async function handler(req, res) {
       
       // Utility to sanitize filenames (remove problematic chars, ensure UTF-8)
       function sanitizeFilename(filename) {
-        // Remove non-printable and non-ASCII except Hebrew/Arabic/letters/numbers/dot/underscore/hyphen
         return filename
           .replace(/[^\w\u0590-\u05FF\u0600-\u06FF\d.\-_ ]+/g, '')
           .replace(/\s+/g, ' ')
           .trim();
       }
 
-      // Track which field names have already been processed
-      const processedFields = new Set();
-
+      // Group files by field name
+      const filesByField = {};
       for (const file of files) {
-        try {
-          const fieldName = file.fieldname;
-          if (processedFields.has(fieldName) && fieldName !== 'bankStatements' && !fieldName.startsWith('owner[')) {
-            // Only allow multiple files for bankStatements and owner idPhotos
-            continue;
+        if (!filesByField[file.fieldname]) filesByField[file.fieldname] = [];
+        filesByField[file.fieldname].push(file);
+      }
+
+      // Process files
+      for (const [fieldName, fileArr] of Object.entries(filesByField)) {
+        // Allow multiple for bankStatements and owner[n][idPhoto]
+        const isOwnerIdPhoto = /^owner\[\d+\]\[idPhoto\]$/.test(fieldName);
+        const isBankStatements = fieldName === 'bankStatements';
+        const isAuthorizedSignatory = fieldName === 'authorizedSignatory';
+        if (isBankStatements || isOwnerIdPhoto) {
+          // Upload all files for these fields (up to 5 for owner id)
+          for (const file of fileArr.slice(0, 5)) {
+            await uploadFileToSalesforce(file, fieldName);
           }
-          processedFields.add(fieldName);
+        } else if (isAuthorizedSignatory) {
+          // Always upload the authorizedSignatory file (should only be one)
+          await uploadFileToSalesforce(fileArr[0], fieldName);
+        } else {
+          // For all other fields, only upload the first file
+          await uploadFileToSalesforce(fileArr[0], fieldName);
+        }
+      }
+
+      // Helper function to upload a file
+      async function uploadFileToSalesforce(file, fieldName) {
+        try {
           const displayName = fileMappings[fieldName] || fieldName;
           const safeOriginalName = sanitizeFilename(file.originalname);
           const title = `${displayName} - ${safeOriginalName}`;
           console.log(`Uploading file: ${fieldName} - ${safeOriginalName}`);
-
-          // Create ContentVersion record
           const contentVersion = {
             Title: title,
             PathOnClient: safeOriginalName,
@@ -190,9 +209,7 @@ export default async function handler(req, res) {
             ContentLocation: 'S',
             FirstPublishLocationId: opportunityId
           };
-
           const uploadResult = await conn.sobject('ContentVersion').create(contentVersion);
-
           if (uploadResult.success) {
             console.log(`File uploaded successfully: ${safeOriginalName}`);
             filesUploaded++;
@@ -203,7 +220,7 @@ export default async function handler(req, res) {
           }
         } catch (error) {
           filesFailed++;
-          failedFiles.push({ fieldName: file.fieldname, fileName: file.originalname, error: error.message });
+          failedFiles.push({ fieldName, fileName: file.originalname, error: error.message });
         }
       }
     }
