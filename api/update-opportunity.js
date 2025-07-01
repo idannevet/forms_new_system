@@ -104,12 +104,12 @@ export default async function handler(req, res) {
         'owner[4][idPhoto]': 'ת"ז בעלים 5'
       },
       eligibility_check: {
-        'certificate': 'תעודה פדרלית',
+        'certificate': 'תעודת התאגדות',
         'balance2024': 'מאזן 2024',
         'balance2025': 'מאזן 2025',
         'audited2023': 'מאזן מבוקר 2023',
         'accountConfirmation': 'אישור חשבון בנק',
-        'authorizedSignatory': 'חתימת בעלים',
+        'authorizedSignatory': 'מורשה חתימה',
         'bankBalances': 'דפי בנק',
         'owner[0][idPhoto]': 'ת"ז בעלים 1',
         'owner[1][idPhoto]': 'ת"ז בעלים 2',
@@ -181,11 +181,14 @@ export default async function handler(req, res) {
         const isOwnerIdPhoto = /^owner\[\d+\]\[idPhoto\]$/.test(fieldName);
         const isBankStatements = fieldName === 'bankStatements';
         const isAuthorizedSignatory = fieldName === 'authorizedSignatory';
-        if (isBankStatements || isOwnerIdPhoto) {
-          // Upload all files for these fields (up to 5 for owner id)
-          for (const file of fileArr.slice(0, 5)) {
+        if (isBankStatements) {
+          // Upload all files for these fields
+          for (const file of fileArr) {
             await uploadFileToSalesforce(file, fieldName);
           }
+        } else if (isOwnerIdPhoto) {
+          // Only upload the first file for each owner[n][idPhoto] (deduplicate)
+          await uploadFileToSalesforce(fileArr[0], fieldName);
         } else if (isAuthorizedSignatory) {
           // Always upload the authorizedSignatory file (should only be one)
           await uploadFileToSalesforce(fileArr[0], fieldName);
