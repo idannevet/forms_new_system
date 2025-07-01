@@ -96,7 +96,7 @@ export default async function handler(req, res) {
         'certificate': 'תעודת התאגדות',
         'bankStatements': 'דפי בנק 3 חודשים',
         'accountConfirmation': 'אישור חשבון בנק',
-        'authorizedSignatory': 'חתימת בעלים',
+        'authorizedSignatory': 'מורשה חתימה',
         'owner[0][idPhoto]': 'ת"ז בעלים 1',
         'owner[1][idPhoto]': 'ת"ז בעלים 2',
         'owner[2][idPhoto]': 'ת"ז בעלים 3',
