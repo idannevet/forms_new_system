@@ -741,20 +741,36 @@
                 return;
             }
 
-            // Collect all files and fields
+            // Add this before batching in handleSubmit
+            console.log('--- DEBUG: All file inputs at submit ---');
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                console.log('File input:', input.name, input.files.length, input.files[0]?.name);
+            });
+
+            // Refactor file collection logic
             const allFiles = [];
             const formDataFields = [];
+            const fileFieldNames = new Set();
+
+            // Collect all unique file inputs from the main form
             for (let i = 0; i < form.elements.length; i++) {
                 const element = form.elements[i];
                 if (element.name && element.type !== 'file') {
                     formDataFields.push([element.name, element.value]);
-                } else if (element.name && element.type === 'file' && element.files.length > 0) {
-                    for (let j = 0; j < element.files.length; j++) {
-                        allFiles.push({ name: element.name, file: element.files[j] });
+                } else if (element.name && element.type === 'file') {
+                    if (!fileFieldNames.has(element.name)) {
+                        fileFieldNames.add(element.name);
+                        if (element.files.length > 0) {
+                            for (let j = 0; j < element.files.length; j++) {
+                                allFiles.push({ name: element.name, file: element.files[j] });
+                            }
+                        } else if (element.required) {
+                            console.warn('Required file input missing or empty:', element.name);
+                        }
                     }
                 }
             }
-            // Owner files
+            // Collect owner files from ownersDetailsSection (if not already in main form)
             if (ownersDetailsSection) {
                 const ownerForms = ownersDetailsSection.querySelectorAll('.owner-form');
                 ownerForms.forEach((ownerForm, index) => {
@@ -762,17 +778,23 @@
                     inputs.forEach(input => {
                         if (input.name && input.type !== 'file') {
                             formDataFields.push([input.name, input.value]);
-                        } else if (input.name && input.type === 'file' && input.files.length > 0) {
-                            for (let j = 0; j < input.files.length; j++) {
-                                allFiles.push({ name: input.name, file: input.files[j] });
+                        } else if (input.name && input.type === 'file') {
+                            if (!fileFieldNames.has(input.name)) {
+                                fileFieldNames.add(input.name);
+                                if (input.files.length > 0) {
+                                    for (let j = 0; j < input.files.length; j++) {
+                                        allFiles.push({ name: input.name, file: input.files[j] });
+                                    }
+                                } else if (input.required) {
+                                    console.warn('Required owner file input missing or empty:', input.name);
+                                }
                             }
                         }
                     });
                 });
             }
-
-            // After collecting allFiles in handleSubmit, add debug logging
-            console.log('All files to be sent:', allFiles.map(f => ({ name: f.name, fileName: f.file.name })));
+            // Final debug log
+            console.log('--- DEBUG: Files to be sent after deduplication ---', allFiles.map(f => ({ name: f.name, fileName: f.file.name })));
 
             // Helper to create FormData for a batch of files
             function createFormDataBatch(filesBatch) {
