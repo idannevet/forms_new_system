@@ -157,35 +157,53 @@ export default async function handler(req, res) {
     if (files.length > 0) {
       const fileMappings = fileFieldMappings[formType] || {};
       
+      // Utility to sanitize filenames (remove problematic chars, ensure UTF-8)
+      function sanitizeFilename(filename) {
+        // Remove non-printable and non-ASCII except Hebrew/Arabic/letters/numbers/dot/underscore/hyphen
+        return filename
+          .replace(/[^\w\u0590-\u05FF\u0600-\u06FF\d.\-_ ]+/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      // Track which field names have already been processed
+      const processedFields = new Set();
+
       for (const file of files) {
         try {
           const fieldName = file.fieldname;
+          if (processedFields.has(fieldName) && fieldName !== 'bankStatements' && !fieldName.startsWith('owner[')) {
+            // Only allow multiple files for bankStatements and owner idPhotos
+            continue;
+          }
+          processedFields.add(fieldName);
           const displayName = fileMappings[fieldName] || fieldName;
-          
-          console.log(`Uploading file: ${fieldName} - ${file.originalname}`);
-          
+          const safeOriginalName = sanitizeFilename(file.originalname);
+          const title = `${displayName} - ${safeOriginalName}`;
+          console.log(`Uploading file: ${fieldName} - ${safeOriginalName}`);
+
           // Create ContentVersion record
           const contentVersion = {
-            Title: `${displayName} - ${file.originalname}`,
-            PathOnClient: file.originalname,
+            Title: title,
+            PathOnClient: safeOriginalName,
             VersionData: file.buffer.toString('base64'),
             ContentLocation: 'S',
             FirstPublishLocationId: opportunityId
           };
-          
+
           const uploadResult = await conn.sobject('ContentVersion').create(contentVersion);
-          
+
           if (uploadResult.success) {
-            console.log(`File uploaded successfully: ${file.originalname}`);
+            console.log(`File uploaded successfully: ${safeOriginalName}`);
             filesUploaded++;
-            uploadedFiles.push(file.originalname);
+            uploadedFiles.push({ fieldName, displayName, fileName: safeOriginalName, contentVersionId: uploadResult.id });
           } else {
             filesFailed++;
-            failedFiles.push(file.originalname);
+            failedFiles.push({ fieldName, displayName, fileName: safeOriginalName, error: uploadResult.errors });
           }
         } catch (error) {
           filesFailed++;
-          failedFiles.push(file.originalname);
+          failedFiles.push({ fieldName: file.fieldname, fileName: file.originalname, error: error.message });
         }
       }
     }
