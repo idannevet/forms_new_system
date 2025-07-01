@@ -806,23 +806,18 @@
                 return fd;
             }
 
-            // Split files into batches of 3, and send each batch
+            // Calculate total size of all files
+            let totalSize = allFiles.reduce((sum, f) => sum + (f.file.size || 0), 0);
+            const MAX_SIZE = 4 * 1024 * 1024;
+
             async function submitBatches() {
-                const batchSize = 3;
-                let success = true;
-                for (let i = 0; i < allFiles.length; i += batchSize) {
-                    const batch = allFiles.slice(i, i + batchSize);
-                    const fd = createFormDataBatch(batch);
-                    // Check size (4MB = 4 * 1024 * 1024)
-                    let totalSize = 0;
-                    for (let pair of fd.entries()) {
-                        if (pair[1] instanceof File) totalSize += pair[1].size;
-                    }
-                    if (totalSize > 4 * 1024 * 1024) {
-                        alert('קבצים גדולים מדי, נסה לצרף פחות קבצים בכל שליחה');
-                        success = false;
-                        break;
-                    }
+                if (allFiles.length === 0) {
+                    alert('יש לבחור קבצים בכל השדות הנדרשים');
+                    return false;
+                }
+                if (totalSize <= MAX_SIZE) {
+                    // All files fit in one request
+                    const fd = createFormDataBatch(allFiles);
                     try {
                         const response = await fetch('/api/update-opportunity.js', {
                             method: 'POST',
@@ -831,13 +826,37 @@
                         if (!response.ok) throw new Error('שגיאה בשרת: ' + response.status);
                         const result = await response.json();
                         if (!result.success) throw new Error(result.error || 'שגיאה לא ידועה');
+                        return true;
                     } catch (error) {
                         alert('שגיאה בשליחת קבצים: ' + error.message);
-                        success = false;
-                        break;
+                        return false;
                     }
+                } else {
+                    // Split into batches of 3 files, each under 4MB
+                    const batchSize = 3;
+                    for (let i = 0; i < allFiles.length; i += batchSize) {
+                        const batch = allFiles.slice(i, i + batchSize);
+                        const batchSizeBytes = batch.reduce((sum, f) => sum + (f.file.size || 0), 0);
+                        if (batchSizeBytes > MAX_SIZE) {
+                            alert('קבצים גדולים מדי, נסה לצרף פחות קבצים בכל שליחה');
+                            return false;
+                        }
+                        const fd = createFormDataBatch(batch);
+                        try {
+                            const response = await fetch('/api/update-opportunity.js', {
+                                method: 'POST',
+                                body: fd
+                            });
+                            if (!response.ok) throw new Error('שגיאה בשרת: ' + response.status);
+                            const result = await response.json();
+                            if (!result.success) throw new Error(result.error || 'שגיאה לא ידועה');
+                        } catch (error) {
+                            alert('שגיאה בשליחת קבצים: ' + error.message);
+                            return false;
+                        }
+                    }
+                    return true;
                 }
-                return success;
             }
 
             // Main submit
