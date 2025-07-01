@@ -771,6 +771,9 @@
                 });
             }
 
+            // After collecting allFiles in handleSubmit, add debug logging
+            console.log('All files to be sent:', allFiles.map(f => ({ name: f.name, fileName: f.file.name })));
+
             // Helper to create FormData for a batch of files
             function createFormDataBatch(filesBatch) {
                 const fd = new FormData();
@@ -939,14 +942,13 @@
                     alert('יש למלא את כל השדות החובה');
                     return;
                 }
-                // הסר שדות קודמים
-                ownersDetailsSection.innerHTML = '';
-                // העבר את כל השדות מהפופאפ ל-ownersDetailsSection (כחלק מהטופס הראשי)
+                // Remove all previous owner-form blocks
+                ownersDetailsSection.querySelectorAll('.owner-form').forEach(el => el.remove());
+                // Append new owner forms
                 ownerPopupForm.querySelectorAll('.owner-form').forEach(formBlock => {
                     ownersDetailsSection.appendChild(formBlock.cloneNode(true));
                 });
                 ownerPopup.style.display = 'none';
-                // נקה את הפופאפ כדי למנוע כפילויות
                 ownerPopupForm.innerHTML = '';
             };
         });
