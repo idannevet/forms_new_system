@@ -290,9 +290,11 @@
             margin-bottom: 1rem;
             color: var(--brand-purple);
         }
+        .lds-dual-ring{display:inline-block;width:64px;height:64px;}.lds-dual-ring:after{content:" ";display:block;width:46px;height:46px;margin:1px;border-radius:50%;border:6px solid #6531a3;border-color:#6531a3 transparent #6531a3 transparent;animation:lds-dual-ring 1.2s linear infinite;}@keyframes lds-dual-ring{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
     </style>
 </head>
 <body>
+    <div id="spinnerOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2000;background:rgba(255,255,255,0.7);align-items:center;justify-content:center;"><div style="text-align:center;"><div class="lds-dual-ring"></div><div style="margin-top:1rem;color:#6531a3;font-weight:bold;">שולח קבצים...</div></div></div>
     <div class="container">
         <div class="logo-container">
             <img src="/images/buykal-logo.png" alt="BuyKal Logo">
@@ -745,6 +747,7 @@
             submitBtn.disabled = true;
             const originalBtnText = submitBtn.textContent;
             submitBtn.textContent = 'שולח...';
+            document.getElementById('spinnerOverlay').style.display = 'flex';
 
             // הוסף את record_id מה-URL אם קיים
             const recordId = getUrlParameter('record_id');
@@ -752,6 +755,7 @@
                 alert('שגיאה: לא נמצא מזהה רשומה');
                 submitBtn.textContent = originalBtnText;
                 submitBtn.disabled = false;
+                document.getElementById('spinnerOverlay').style.display = 'none';
                 return;
             }
 
@@ -772,7 +776,6 @@
                     }
                 }
             });
-
             // בדיקת קבצים גם מה-ownersDetailsSection
             const ownersDetailsSection = document.getElementById('ownersDetailsSection');
             if (ownersDetailsSection) {
@@ -783,29 +786,27 @@
                     }
                 });
             }
-
             if (hasFileError) {
                 submitBtn.textContent = originalBtnText;
                 submitBtn.disabled = false;
+                document.getElementById('spinnerOverlay').style.display = 'none';
                 alert('יש לבחור קבצים בכל השדות הנדרשים');
                 return;
             }
 
             // אוסף את כל הנתונים מהטופס
-            const formData = {
+            const formDataObj = {
                 record_id: recordId,
                 form_type: 'eligibility_check'
             };
-
             // הוסף את כל שדות הטופס הראשי
             const formElements = form.elements;
             for (let i = 0; i < formElements.length; i++) {
                 const element = formElements[i];
                 if (element.name && element.value && element.type !== 'file') {
-                    formData[element.name] = element.value;
+                    formDataObj[element.name] = element.value;
                 }
             }
-
             // הוסף את כל פרטי הבעלים
             if (ownersDetailsSection) {
                 const ownerForms = ownersDetailsSection.querySelectorAll('.owner-form');
@@ -813,50 +814,100 @@
                     const inputs = ownerForm.querySelectorAll('input');
                     inputs.forEach(input => {
                         if (input.name && input.value && input.type !== 'file') {
-                            formData[input.name] = input.value;
+                            formDataObj[input.name] = input.value;
                         }
                     });
                 });
             }
 
-            // שליחה לשרת Salesforce
-            async function submitToSalesforce() {
+            // Gather all files (including owner id files)
+            const allFiles = [];
+            // Main form files
+            form.querySelectorAll('input[type="file"]').forEach(input => {
+                if (input.files.length > 0) {
+                    for (let i = 0; i < input.files.length; i++) {
+                        allFiles.push({ field: input.name, file: input.files[i] });
+                    }
+                }
+            });
+            // Owner files
+            if (ownersDetailsSection) {
+                ownersDetailsSection.querySelectorAll('input[type="file"]').forEach(input => {
+                    if (input.files.length > 0) {
+                        for (let i = 0; i < input.files.length; i++) {
+                            allFiles.push({ field: input.name, file: input.files[i] });
+                        }
+                    }
+                });
+            }
+
+            // Batch files if needed (max 4MB per request)
+            const MAX_BATCH_SIZE = 4 * 1024 * 1024; // 4MB
+            let currentBatch = [];
+            let currentBatchSize = 0;
+            const batches = [];
+            for (const fileObj of allFiles) {
+                if (currentBatchSize + fileObj.file.size > MAX_BATCH_SIZE && currentBatch.length > 0) {
+                    batches.push(currentBatch);
+                    currentBatch = [];
+                    currentBatchSize = 0;
+                }
+                currentBatch.push(fileObj);
+                currentBatchSize += fileObj.file.size;
+            }
+            if (currentBatch.length > 0) {
+                batches.push(currentBatch);
+            }
+
+            // Helper to send a batch
+            async function sendBatch(batch, isFirst) {
+                const fd = new FormData();
+                // Add form fields only in the first batch
+                if (isFirst) {
+                    for (const [key, value] of Object.entries(formDataObj)) {
+                        fd.append(key, value);
+                    }
+                } else {
+                    fd.append('record_id', recordId);
+                    fd.append('form_type', 'eligibility_check');
+                    fd.append('operation', 'upload_files_only');
+                }
+                // Add files
+                for (const { field, file } of batch) {
+                    fd.append(field, file, file.name);
+                }
+                const response = await fetch('/api/update-opportunity.js', {
+                    method: 'POST',
+                    body: fd
+                });
+                if (!response.ok) {
+                    throw new Error(`שגיאה בשרת: ${response.status}`);
+                }
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'שגיאה לא ידועה');
+                }
+                return result;
+            }
+
+            // Send all batches sequentially
+            (async () => {
                 try {
-                    console.log('שולח נתונים ל-Salesforce...');
-                    
-                    const response = await fetch('/api/update-opportunity.js', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`שגיאה בשרת: ${response.status}`);
+                    for (let i = 0; i < batches.length; i++) {
+                        await sendBatch(batches[i], i === 0);
                     }
-
-                    const result = await response.json();
-                    console.log('תגובה מהשרת:', result);
-
-                    if (result.success) {
-                        alert('הטופס נשלח בהצלחה!');
-                        clearFormSession();
-                        window.location.reload();
-                    } else {
-                        throw new Error(result.error || 'שגיאה לא ידועה');
-                    }
-
+                    alert('הטופס נשלח בהצלחה!');
+                    clearFormSession();
+                    window.location.reload();
                 } catch (error) {
                     console.error('שגיאה בשליחת הטופס:', error);
                     alert(`שגיאה בשליחת הטופס: ${error.message}`);
                 } finally {
                     submitBtn.textContent = originalBtnText;
                     submitBtn.disabled = false;
+                    document.getElementById('spinnerOverlay').style.display = 'none';
                 }
-            }
-
-            submitToSalesforce();
+            })();
         }
 
         // פונקציה לעיצוב שדה מטבע עם פסיק מפריד אלפים
