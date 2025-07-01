@@ -234,6 +234,8 @@
                 padding: 0.25rem;
             }
         }
+
+        .lds-dual-ring{display:inline-block;width:48px;height:48px;}.lds-dual-ring:after{content:" ";display:block;width:32px;height:32px;margin:8px;border-radius:50%;border:6px solid #6531a3;border-color:#6531a3 transparent #6531a3 transparent;animation:lds-dual-ring 1.2s linear infinite;}@keyframes lds-dual-ring{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
     </style>
 </head>
 <body>
@@ -246,6 +248,12 @@
             <div class="form-header">
                 <h1>טבלת עובדים</h1>
                 <p>הוסף עובדים חדשים למערכת</p>
+            </div>
+
+            <div style="margin-bottom:1rem;">
+                <label for="fileUpload" style="font-weight:500;">ייבוא עובדים מקובץ CSV/XLS:</label>
+                <input type="file" id="fileUpload" accept=".csv,.xls,.xlsx" style="margin-right:1em;">
+                <span style="color:#6531a3;font-size:0.95em;">(הקובץ צריך לכלול את אותם עמודות כמו הטבלה)</span>
             </div>
 
             <div class="error-message" id="errorMessage"></div>
@@ -278,12 +286,17 @@
                 </table>
             </div>
 
-            <div class="loading" id="loading"></div>
+            <div class="loading" id="loading">
+                <div class="lds-dual-ring"></div>
+                <div style="margin-top:0.5rem;color:#6531a3;font-weight:bold;">שולח נתונים...</div>
+            </div>
             
             <button class="submit-button" id="submitButton" onclick="submitData()">שליחה</button>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         let rowCounter = 0;
 
@@ -438,6 +451,7 @@
             }
 
             const employees = collectFormData();
+            console.log('Submitting employees:', employees);
             const submitButton = document.getElementById('submitButton');
             const loading = document.getElementById('loading');
 
@@ -479,6 +493,62 @@
         document.addEventListener('DOMContentLoaded', function() {
             addRow();
         });
+
+        // XLS/CSV file upload logic
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'csv') {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        populateTableFromData(results.data);
+                    }
+                });
+            } else if (ext === 'xls' || ext === 'xlsx') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+                    populateTableFromData(json);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert('פורמט קובץ לא נתמך. יש לבחור קובץ CSV, XLS או XLSX.');
+            }
+        });
+
+        // Helper to populate table from parsed data
+        function populateTableFromData(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            rowCounter = 0;
+            data.forEach(row => {
+                rowCounter++;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" name="firstNameHebrew_${rowCounter}" value="${row['firstNameHebrew']||row['שם פרטי עברית']||''}" required></td>
+                    <td><input type="text" name="lastNameHebrew_${rowCounter}" value="${row['lastNameHebrew']||row['שם משפחה עברית']||''}" required></td>
+                    <td><input type="text" name="firstNameEnglish_${rowCounter}" value="${row['firstNameEnglish']||row['שם פרטי אנגלית']||''}" required></td>
+                    <td><input type="text" name="lastNameEnglish_${rowCounter}" value="${row['lastNameEnglish']||row['שם משפחה אנגלית']||''}" required></td>
+                    <td><input type="number" name="idNumber_${rowCounter}" value="${row['idNumber']||row['ת.ז']||''}" required pattern="[0-9]{9}" title="ת.ז חייב להכיל 9 ספרות"></td>
+                    <td><input type="tel" name="phoneNumber_${rowCounter}" value="${row['phoneNumber']||row['מספר נייד']||''}" required pattern="[0-9]{10}" title="מספר טלפון חייב להכיל 10 ספרות"></td>
+                    <td><input type="text" name="city_${rowCounter}" value="${row['city']||row['עיר מגורים']||''}" required></td>
+                    <td><input type="text" name="recruitingCompany_${rowCounter}" value="${row['recruitingCompany']||row['חברה מגייסת']||''}" required></td>
+                    <td class="readonly"><input type="text" name="floorClub_${rowCounter}" value="${row['floorClub']||row['רצפה / מועדון']||'מטלון 264'}" readonly></td>
+                    <td class="readonly"><input type="text" name="decision_${rowCounter}" value="${row['decision']||row['החלטה']||''}" readonly></td>
+                    <td><input type="checkbox" name="declaration_${rowCounter}" ${row['declaration']||row['חתימה על הצהרה']? 'checked' : ''}></td>
+                    <td><input type="email" name="email_${rowCounter}" value="${row['email']||row['מייל']||''}" required></td>
+                    <td><button type="button" class="delete-row" onclick="deleteRow(this)">מחק</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     </script>
 </body>
 </html> 

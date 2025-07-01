@@ -784,7 +784,7 @@
                                 if (input.files.length > 0) {
                                     for (let j = 0; j < input.files.length; j++) {
                                         allFiles.push({ name: input.name, file: input.files[j] });
-                                    }
+            }
                                 } else if (input.required) {
                                     console.warn('Required owner file input missing or empty:', input.name);
                                 }
@@ -820,7 +820,7 @@
                     const fd = createFormDataBatch(allFiles);
                     try {
                         const response = await fetch('/api/update-opportunity.js', {
-                            method: 'POST',
+                method: 'POST',
                             body: fd
                         });
                         if (!response.ok) throw new Error('שגיאה בשרת: ' + response.status);
@@ -863,8 +863,8 @@
             (async () => {
                 const ok = await submitBatches();
                 if (ok) {
-                    alert('הטופס נשלח בהצלחה!');
-                    clearFormSession();
+                alert('הטופס נשלח בהצלחה!');
+                clearFormSession();
                     window.location.reload();
                 }
                 submitBtn.textContent = originalBtnText;

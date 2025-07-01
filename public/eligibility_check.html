@@ -827,7 +827,7 @@
                 if (input.files.length > 0) {
                     for (let i = 0; i < input.files.length; i++) {
                         allFiles.push({ field: input.name, file: input.files[i] });
-                    }
+            }
                 }
             });
             // Owner files
@@ -877,7 +877,7 @@
                     fd.append(field, file, file.name);
                 }
                 const response = await fetch('/api/update-opportunity.js', {
-                    method: 'POST',
+                method: 'POST',
                     body: fd
                 });
                 if (!response.ok) {
@@ -895,9 +895,9 @@
                 try {
                     for (let i = 0; i < batches.length; i++) {
                         await sendBatch(batches[i], i === 0);
-                    }
-                    alert('הטופס נשלח בהצלחה!');
-                    clearFormSession();
+                }
+                alert('הטופס נשלח בהצלחה!');
+                clearFormSession();
                     window.location.reload();
                 } catch (error) {
                     console.error('שגיאה בשליחת הטופס:', error);
