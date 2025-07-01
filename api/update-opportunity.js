@@ -37,8 +37,8 @@ export default async function handler(req, res) {
     console.log('Received form data:', formData);
     console.log('Received files:', files.map(f => ({ name: f.fieldname, filename: f.originalname })));
 
-    // Debug: log all received files and their field names
-    console.log('All received files:', files.map(f => ({ field: f.fieldname, name: f.originalname })));
+    // Debug: log all received files and their field names and sizes
+    console.log('All received files:', files.map((f, idx) => ({ idx, field: f.fieldname, name: f.originalname, size: f.size })));
 
     // Get the opportunity ID and form type from the form
     const opportunityId = formData.record_id;
@@ -201,7 +201,8 @@ export default async function handler(req, res) {
           const displayName = fileMappings[fieldName] || fieldName;
           const safeOriginalName = sanitizeFilename(file.originalname);
           const title = `${displayName} - ${safeOriginalName}`;
-          console.log(`Uploading file: ${fieldName} - ${safeOriginalName}`);
+          const uniqueId = `${Date.now()}-${Math.floor(Math.random()*10000)}`;
+          console.log(`[UPLOAD ${uniqueId}] Uploading file: ${fieldName} - ${safeOriginalName} (${file.size} bytes)`);
           const contentVersion = {
             Title: title,
             PathOnClient: safeOriginalName,
@@ -211,14 +212,16 @@ export default async function handler(req, res) {
           };
           const uploadResult = await conn.sobject('ContentVersion').create(contentVersion);
           if (uploadResult.success) {
-            console.log(`File uploaded successfully: ${safeOriginalName}`);
+            console.log(`[UPLOAD ${uniqueId}] File uploaded successfully: ${safeOriginalName}`);
             filesUploaded++;
             uploadedFiles.push({ fieldName, displayName, fileName: safeOriginalName, contentVersionId: uploadResult.id });
           } else {
+            console.error(`[UPLOAD ${uniqueId}] Failed:`, uploadResult.errors);
             filesFailed++;
             failedFiles.push({ fieldName, displayName, fileName: safeOriginalName, error: uploadResult.errors });
           }
         } catch (error) {
+          console.error(`[UPLOAD ERROR] ${fieldName} - ${file.originalname}:`, error);
           filesFailed++;
           failedFiles.push({ fieldName, fileName: file.originalname, error: error.message });
         }
