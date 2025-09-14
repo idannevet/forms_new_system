@@ -479,6 +479,12 @@
             return urlParams.get('opportunity_id');
         }
 
+        // Get record ID from URL parameter
+        function getRecordId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('record_id');
+        }
+
         // Add a new row to the table
         function addRow() {
             const tbody = document.getElementById('tableBody');
@@ -540,7 +546,8 @@
                 city: row.querySelector('input[name*="city"]').value.trim(),
                 recruitingCompany: row.querySelector('input[name*="recruitingCompany"]').value.trim(),
                 floorClub: row.querySelector('input[name*="floorClub"]').value.trim(),
-                email: row.querySelector('input[name*="email"]').value.trim()
+                email: row.querySelector('input[name*="email"]').value.trim(),
+                record_id: getRecordId()
             };
 
             // Validate that all required fields are filled
@@ -830,7 +837,8 @@
                 city: row.querySelector('input[name*="city"]').value.trim(),
                 recruitingCompany: row.querySelector('input[name*="recruitingCompany"]').value.trim(),
                 floorClub: row.querySelector('input[name*="floorClub"]').value.trim(),
-                email: row.querySelector('input[name*="email"]').value.trim()
+                email: row.querySelector('input[name*="email"]').value.trim(),
+                record_id: getRecordId()
             };
         }
 

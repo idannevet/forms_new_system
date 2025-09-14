@@ -1,0 +1,26 @@
+[1mdiff --git a/public/employee-table.html b/public/employee-table.html[m
+[1mindex 451ea2e..9215647 100644[m
+[1m--- a/public/employee-table.html[m
+[1m+++ b/public/employee-table.html[m
+[36m@@ -423,7 +423,7 @@[m
+             <div class="error-message" id="errorMessage"></div>[m
+             <div class="success-message" id="successMessage"></div>[m
+ [m
+[31m-            <button class="add-row" onclick="addRow()">הוסף שורה חדשה</button>[m
+[32m+[m[32m            <button class="add-row" onclick="addRow()">הוסף עובד חדש</button>[m
+             [m
+             <div class="bulk-actions-container">[m
+                 <div class="bulk-select-all">[m
+[1mdiff --git a/public/employees.html b/public/employees.html[m
+[1mindex 883cc6e..b05360f 100644[m
+[1m--- a/public/employees.html[m
+[1m+++ b/public/employees.html[m
+[36m@@ -250,7 +250,7 @@[m
+             <div class="error-message" id="errorMessage"></div>[m
+             <div class="success-message" id="successMessage"></div>[m
+ [m
+[31m-            <button class="add-row" onclick="addRow()">הוסף שורה חדשה</button>[m
+[32m+[m[32m            <button class="add-row" onclick="addRow()"></button>הוסף עובד חדש</button>[m
+             [m
+             <div class="table-container">[m
+                 <table class="employee-table" id="employeeTable">[m
