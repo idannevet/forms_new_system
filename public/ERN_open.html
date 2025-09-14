@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.R.N פתיחת בית עסק חדש</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-purple: #6531a3;
+            --brand-cyan: #00bcd4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rubik', sans-serif;
+        }
+
+        body {
+            background-color: var(--brand-purple);
+            min-height: 100vh;
+            padding: 1.5rem 0;
+        }
+
+        .container {
+            max-width: 768px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-container img {
+            width: 280px;
+            height: auto;
+        }
+
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-header h1 {
+            color: var(--brand-purple);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-container {
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background-color: #e2e8f0;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--brand-purple);
+            transition: width 0.3s ease;
+        }
+
+        .step-label {
+            font-weight: bold;
+            color: var(--brand-purple);
+            font-size: 1.125rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--brand-purple);
+            box-shadow: 0 0 0 1px var(--brand-purple);
+        }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        .input-with-icon {
+            padding-left: 2.5rem;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            min-width: 6rem;
+            transition: opacity 0.2s;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        .button-primary {
+            background-color: var(--brand-purple);
+            color: white;
+            border: none;
+        }
+
+        .button-secondary {
+            background-color: transparent;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .button-submit {
+            background-color: var(--brand-cyan);
+            color: var(--brand-purple);
+            border: none;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .help-text {
+            background: var(--brand-purple);
+            color: #fff;
+            border-radius: 12px;
+            padding: 0.5rem 1.2rem;
+            margin: 0.3rem 0 0.7rem 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: inline-block;
+            max-width: 100%;
+            line-height: 1.7;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-right: 0.3em;
+            vertical-align: middle;
+        }
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background-color: var(--brand-purple);
+            color: #fff;
+            text-align: center;
+            padding: 0.5rem 1.2rem;
+            border-radius: 12px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            right: 50%;
+            transform: translateX(50%);
+            font-size: 1.05rem;
+            font-weight: 500;
+            min-width: 200px;
+            max-width: 350px;
+            white-space: pre-line;
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+        }
+        .help-icon {
+            background: var(--brand-purple);
+            color: #fff;
+            border-radius: 50%;
+            width: 1.5em;
+            height: 1.5em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--brand-purple);
+            margin-bottom: 1.2rem;
+            margin-top: 1.5rem;
+        }
+        .input-currency-group {
+            position: relative;
+        }
+        .input-currency-group input {
+            padding-left: 2.5em;
+            direction: ltr;
+            text-align: right;
+        }
+        .currency-symbol {
+            position: absolute;
+            left: 0.8em;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6531a3;
+            font-size: 1.2em;
+            pointer-events: none;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .popup-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            position: relative;
+        }
+        .close-popup {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--brand-purple);
+        }
+        .owner-form {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+        }
+        .owner-form h3 {
+            margin-bottom: 1rem;
+            color: var(--brand-purple);
+        }
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            border-top: 3px solid #6531a3;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="/images/buykal-logo.png" alt="BuyKal Logo">
+        </div>
+        <div class="form-container">
+            <div class="form-header">
+                <h1>E.R.N פתיחת בית עסק חדש</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div id="stepLabel" style="text-align:center; margin-top:8px;"></div>
+                </div>
+            </div>
+            <form id="eligibilityForm" onsubmit="return handleSubmit(event)">
+                <!-- סקשן 1: פרטי בית עסק -->
+                <div class="step active" id="step1">
+                    <div class="section-title">פרטי בית עסק</div>
+                    <div class="form-group">
+                        <label>שם בית עסק
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">שם בית העסק כפי שמופיע ברשם החברות</span>
+                            </span>
+                        </label>
+                        <input type="text" name="businessName" required placeholder="הכנס שם בית עסק">
+                        <div class="error-message" id="businessNameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>שם שיווקי
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">שם שיווקי של בית העסק</span>
+                            </span>
+                        </label>
+                        <input type="text" name="marketingName" required placeholder="הכנס שם שיווקי">
+                        <div class="error-message" id="marketingNameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>תאריך הקמת בית עסק
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">תאריך הקמת בית העסק כפי שמצויין בתעודת ההתאגדות</span>
+                            </span>
+                        </label>
+                        <input type="date" name="establishmentDate" required>
+                        <div class="error-message" id="establishmentDateError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>מס' ח.פ
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">מספר ח.פ כפי שמופיע בתעודת ההתאגדות</span>
+                            </span>
+                        </label>
+                        <input type="number" name="companyNumber" required placeholder="הכנס מס' ח.פ" min="1" step="1">
+                        <div class="error-message" id="companyNumberError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>כתובת בית העסק
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">כתובת בית העסק | במידה וקיימים מס' סניפים ציין את הכתובת הראשית כפי שמצויין בתעודת ההתאגדות</span>
+                            </span>
+                        </label>
+                        <input type="text" name="businessAddress" required placeholder="הכנס כתובת">
+                        <div class="error-message" id="businessAddressError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>ענף
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">אנא ציין את הענף המתאים שבו בית העסק פועל</span>
+                            </span>
+                        </label>
+                        <select name="businessSector" required>
+                            <option value="">בחר ענף</option>
+                            <option>קורסים ולימודים</option>
+                            <option>מערכות מיזוג אוויר</option>
+                            <option>דו גלגלי ופנאי</option>
+                            <option>אופטיקה</option>
+                            <option>תיירות פנים וחוץ</option>
+                            <option>אסתטיקה וקוסמטיקה</option>
+                            <option>רפואה דינטאלית</option>
+                            <option>ריהוט וחידוש בתים</option>
+                            <option>אלקטרוניקה ומחשבים</option>
+                            <option>מיכון ומכשור מקצועי</option>
+                            <option>מכשור רפואי</option>
+                            <option>מטבחים וסיניטציה</option>
+                            <option>חשמל ותקשורת</option>
+                            <option>ספורט וכושר</option>
+                            <option>מצלמות ואזעקות</option>
+                            <option>ייעוץ מקצועי</option>
+                        </select>
+                        <div class="error-message" id="businessSectorError"></div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="button button-primary" onclick="nextStep()">הבא</button>
+                    </div>
+                </div>
+
+                <!-- סקשן 2: איסוף מסמכים -->
+                <div class="step" id="step2">
+                    <div class="section-title">איסוף מסמכים</div>
+                    <div class="form-group">
+                        <label>תעודת התאגדות
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">צרף את תעודת ההתאגדות של בית העסק בקובץ PDF</span>
+                            </span>
+                        </label>
+                        <input type="file" name="certificate" accept="application/pdf" required>
+                        <div class="error-message" id="certificateError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>3 חודשים עובר ושב
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">תיעוד של שלושת החודשים האחרונים בעובר ושב של בית העסק.</span>
+                            </span>
+                        </label>
+                        <input type="file" name="bankStatements" accept="application/pdf,image/*" required multiple onchange="handleBankStatementsChange(event)">
+                        <div class="error-message" id="bankStatementsError"></div>
+                        <div id="bankStatementsFileList" class="file-list"></div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="button button-secondary" onclick="prevStep()">חזור</button>
+                        <button type="button" class="button button-primary" onclick="nextStep()">הבא</button>
+                    </div>
+                </div>
+
+                <!-- סקשן 3: פרטי בעלים -->
+                <div class="step" id="step3">
+                    <div class="section-title">פרטי בעלים</div>
+                    <div class="form-group">
+                        <label>כתובת מייל ראשית
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">כתובת מייל ראשית ליצירת קשר</span>
+                            </span>
+                        </label>
+                        <input type="email" name="ownerEmail" required placeholder="הכנס כתובת מייל ראשית">
+                        <div class="error-message" id="ownerEmailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>מס' טלפון ראשי
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">מספר טלפון ראשי ליצירת קשר</span>
+                            </span>
+                        </label>
+                        <input type="tel" name="ownerPhone" required placeholder="הכנס מספר טלפון ראשי">
+                        <div class="error-message" id="ownerPhoneError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>כמה בעלים יש לבית העסק?
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">כמה בעלים רשומים במניות של בית העסק?</span>
+                            </span>
+                        </label>
+                        <select name="ownerCount" required id="ownerCountSelect">
+                            <option value="">בחר מספר בעלים</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5+">5 ומעלה</option>
+                        </select>
+                        <div class="error-message" id="ownerCountError"></div>
+                    </div>
+                    <div id="ownersDetailsSection"></div>
+                    <div class="button-group">
+                        <button type="button" class="button button-secondary" onclick="prevStep()">חזור</button>
+                        <button type="button" class="button button-primary" onclick="nextStep()">הבא</button>
+                    </div>
+                </div>
+
+                <!-- סקשן 4: פרטים פיננסיים -->
+                <div class="step" id="step4">
+                    <div class="section-title">פרטים פיננסיים</div>
+                    <div class="form-group">
+                        <label>שם בנק
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">בחר את שם הבנק של בית העסק</span>
+                            </span>
+                        </label>
+                        <select name="bankName" required>
+                            <option value="">בחר בנק</option>
+                            <option>בנק הפועלים</option>
+                            <option>בנק לאומי</option>
+                            <option>בנק מזרחי־טפחות</option>
+                            <option>הבנק הבינלאומי הראשון לישראל</option>
+                            <option>בנק דיסקונט לישראל</option>
+                            <option>בנק ירושלים</option>
+                            <option>בנק יהב</option>
+                            <option>בנק אוצר החייל</option>
+                            <option>בנק איגוד</option>
+                            <option>בנק מסד</option>
+                            <option>בנק פועלי אגודת ישראל</option>
+                            <option>UBank</option>
+                            <option>One Zero (בנק דיגיטלי)</option>
+                            <option>בנק הדואר</option>
+                        </select>
+                        <div class="error-message" id="bankNameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>מס' סניף
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">ציין את הסניף של חשבון הבנק של בית העסק</span>
+                            </span>
+                        </label>
+                        <input type="number" name="branchNumber" required min="1" step="1" placeholder="הכנס מס' סניף">
+                        <div class="error-message" id="branchNumberError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>מס' חשבון בנק
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">ציין את מספק חשבון הבנק של בית העסק</span>
+                            </span>
+                        </label>
+                        <input type="number" name="accountNumber" required min="1" step="1" placeholder="הכנס מס' חשבון">
+                        <div class="error-message" id="accountNumberError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>אישור קיום חשבון
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">צרף את אישור קיום החשבון של חשבון הבנק</span>
+                            </span>
+                        </label>
+                        <input type="file" name="accountConfirmation" required>
+                        <div class="error-message" id="accountConfirmationError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>מורשה חתימה
+                            <span class="tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">צרף קובץ מורשה חתימה של חשבון הבנק של בית העסק</span>
+                            </span>
+                        </label>
+                        <input type="file" name="authorizedSignatory" required>
+                        <div class="error-message" id="authorizedSignatoryError"></div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="button button-secondary" onclick="prevStep()">חזור</button>
+                        <button type="submit" class="button button-submit">שליחת הטופס</button>
+                    </div>
+                </div>
+    </form>
+        </div>
+    </div>
+
+    <!-- פופאפ פרטי בעלים -->
+    <div id="ownerPopup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <span class="close-popup" onclick="closeOwnerPopup()">&times;</span>
+            <h2>פרטי בעלים</h2>
+            <form id="ownerPopupForm"></form>
+            <button type="button" class="button button-submit" onclick="saveOwnerDetails()">שמור פרטי בעלים</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 4;
+        const progressFill = document.getElementById('progressFill');
+        const stepLabel = document.getElementById('stepLabel');
+        const steps = ['בסיס', 'מתקדם', 'פיננסי', 'פרטי בעלים'];
+
+        // שמירה ושחזור של סשן משתמש ב-localStorage
+        const FORM_STORAGE_KEY = 'eligibilityFormData';
+        const STEP_STORAGE_KEY = 'eligibilityFormStep';
+
+        // שמירה אוטומטית של כל שדה כולל שמות קבצים
+        document.getElementById('eligibilityForm').addEventListener('input', function(e) {
+            const form = this;
+            const data = {};
+            Array.from(form.elements).forEach(el => {
+                if (el.name) {
+                    if (el.type === 'file') {
+                        data[el.name] = el.files && el.files[0] ? el.files[0].name : '';
+                    } else {
+                        data[el.name] = el.value;
+                    }
+                }
+            });
+            localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(data));
+        });
+        // שמירה גם על שינוי קבצים
+        document.getElementById('eligibilityForm').addEventListener('change', function(e) {
+            if (e.target.type === 'file') {
+                const form = this;
+                const data = JSON.parse(localStorage.getItem(FORM_STORAGE_KEY) || '{}');
+                data[e.target.name] = e.target.files && e.target.files[0] ? e.target.files[0].name : '';
+                localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(data));
+            }
+        });
+
+        // טעינת נתונים מה-localStorage כולל שמות קבצים
+        function loadFormData() {
+            const data = JSON.parse(localStorage.getItem(FORM_STORAGE_KEY) || '{}');
+            const form = document.getElementById('eligibilityForm');
+            Object.entries(data).forEach(([name, value]) => {
+                const el = form.elements[name];
+                if (el) {
+                    if (el.type === 'file' && value) {
+                        // הצג את שם הקובץ ליד השדה
+                        let label = el.parentElement.querySelector('.file-name-label');
+                        if (!label) {
+                            label = document.createElement('span');
+                            label.className = 'file-name-label';
+                            label.style.marginRight = '1em';
+                            label.style.color = '#6531a3';
+                            el.parentElement.appendChild(label);
+                        }
+                        label.textContent = value + ' (יש לבחור קובץ מחדש)';
+                    } else {
+                        el.value = value;
+                    }
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progress = ((currentStep + 1) / totalSteps) * 100;
+            progressFill.style.width = `${progress}%`;
+            stepLabel.textContent = steps[currentStep];
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach((el, index) => {
+                el.classList.toggle('active', index === step);
+            });
+            currentStep = step;
+            updateProgress();
+            saveStep(currentStep);
+        }
+
+        function nextStep() {
+            const currentStepElement = document.getElementById(`step${currentStep + 1}`);
+            const inputs = currentStepElement.querySelectorAll('input[required]');
+            let isValid = true;
+
+            inputs.forEach(input => {
+                if (!input.value) {
+                    const errorElement = document.getElementById(`${input.name}Error`);
+                    if (errorElement) {
+                        errorElement.textContent = 'שדה זה הוא שדה חובה';
+                        errorElement.style.display = 'block';
+                    }
+                    isValid = false;
+                } else {
+                    const errorElement = document.getElementById(`${input.name}Error`);
+                    if (errorElement) {
+                        errorElement.style.display = 'none';
+                    }
+                }
+            });
+
+            if (isValid) {
+                showStep(currentStep + 1);
+            }
+        }
+
+        function prevStep() {
+            showStep(currentStep - 1);
+        }
+
+        // פונקציה לחילוץ פרמטרים מה-URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // פונקציה לשליחת הטופס
+        function handleSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.innerHTML = '<span class="spinner"></span>';
+
+            // הוסף את record_id מה-URL אם קיים
+            const recordId = getUrlParameter('record_id');
+            if (!recordId) {
+                alert('שגיאה: לא נמצא מזהה רשומה');
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // בדיקת קבצים
+            let hasFileError = false;
+            form.querySelectorAll('input[type="file"]').forEach(input => {
+                if (input.required && input.files.length === 0) {
+                    const errorElement = document.getElementById(input.name + 'Error');
+                    if (errorElement) {
+                        errorElement.textContent = 'יש לבחור קובץ';
+                        errorElement.style.display = 'block';
+                    }
+                    hasFileError = true;
+                } else {
+                    const errorElement = document.getElementById(input.name + 'Error');
+                    if (errorElement) {
+                        errorElement.style.display = 'none';
+                    }
+                }
+            });
+
+            // בדיקת קבצים גם מה-ownersDetailsSection
+            const ownersDetailsSection = document.getElementById('ownersDetailsSection');
+            if (ownersDetailsSection) {
+                const ownerFileInputs = ownersDetailsSection.querySelectorAll('input[type="file"]');
+                ownerFileInputs.forEach(input => {
+                    if (input.required && input.files.length === 0) {
+                        hasFileError = true;
+                    }
+                });
+            }
+
+            if (hasFileError) {
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+                alert('יש לבחור קבצים בכל השדות הנדרשים');
+                return;
+            }
+
+            // Add this before batching in handleSubmit
+            console.log('--- DEBUG: All file inputs at submit ---');
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                console.log('File input:', input.name, input.files.length, input.files[0]?.name);
+            });
+
+            // Refactor file collection logic
+            const allFiles = [];
+            const formDataFields = [];
+            const fileFieldNames = new Set();
+
+            // Collect all unique file inputs from the main form
+            for (let i = 0; i < form.elements.length; i++) {
+                const element = form.elements[i];
+                if (element.name && element.type !== 'file') {
+                    formDataFields.push([element.name, element.value]);
+                } else if (element.name && element.type === 'file') {
+                    if (!fileFieldNames.has(element.name)) {
+                        fileFieldNames.add(element.name);
+                        if (element.files.length > 0) {
+                            for (let j = 0; j < element.files.length; j++) {
+                                allFiles.push({ name: element.name, file: element.files[j] });
+                            }
+                        } else if (element.required) {
+                            console.warn('Required file input missing or empty:', element.name);
+                        }
+                    }
+                }
+            }
+            // Collect owner files from ownersDetailsSection (if not already in main form)
+            if (ownersDetailsSection) {
+                const ownerForms = ownersDetailsSection.querySelectorAll('.owner-form');
+                ownerForms.forEach((ownerForm, index) => {
+                    const inputs = ownerForm.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        if (input.name && input.type !== 'file') {
+                            formDataFields.push([input.name, input.value]);
+                        } else if (input.name && input.type === 'file') {
+                            if (!fileFieldNames.has(input.name)) {
+                                fileFieldNames.add(input.name);
+                                if (input.files.length > 0) {
+                                    for (let j = 0; j < input.files.length; j++) {
+                                        allFiles.push({ name: input.name, file: input.files[j] });
+            }
+                                } else if (input.required) {
+                                    console.warn('Required owner file input missing or empty:', input.name);
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+            // Final debug log
+            console.log('--- DEBUG: Files to be sent after deduplication ---', allFiles.map(f => ({ name: f.name, fileName: f.file.name })));
+
+            // Helper to create FormData for a batch of files
+            function createFormDataBatch(filesBatch) {
+                const fd = new FormData();
+                fd.append('record_id', recordId);
+                fd.append('form_type', 'ern_open');
+                formDataFields.forEach(([k, v]) => fd.append(k, v));
+                filesBatch.forEach(({ name, file }) => fd.append(name, file));
+                return fd;
+            }
+
+            // Calculate total size of all files
+            let totalSize = allFiles.reduce((sum, f) => sum + (f.file.size || 0), 0);
+            const MAX_SIZE = 4 * 1024 * 1024;
+
+            async function submitBatches() {
+                if (allFiles.length === 0) {
+                    alert('יש לבחור קבצים בכל השדות הנדרשים');
+                    return false;
+                }
+                if (totalSize <= MAX_SIZE) {
+                    // All files fit in one request
+                    const fd = createFormDataBatch(allFiles);
+                    try {
+                        const response = await fetch('/api/update-opportunity.js', {
+                method: 'POST',
+                            body: fd
+                        });
+                        if (!response.ok) throw new Error('שגיאה בשרת: ' + response.status);
+                        const result = await response.json();
+                        if (!result.success) throw new Error(result.error || 'שגיאה לא ידועה');
+                        return true;
+                    } catch (error) {
+                        alert('שגיאה בשליחת קבצים: ' + error.message);
+                        return false;
+                    }
+                } else {
+                    // Split into batches of 3 files, each under 4MB
+                    const batchSize = 3;
+                    for (let i = 0; i < allFiles.length; i += batchSize) {
+                        const batch = allFiles.slice(i, i + batchSize);
+                        const batchSizeBytes = batch.reduce((sum, f) => sum + (f.file.size || 0), 0);
+                        if (batchSizeBytes > MAX_SIZE) {
+                            alert('קבצים גדולים מדי, נסה לצרף פחות קבצים בכל שליחה');
+                            return false;
+                        }
+                        const fd = createFormDataBatch(batch);
+                        try {
+                            const response = await fetch('/api/update-opportunity.js', {
+                                method: 'POST',
+                                body: fd
+                            });
+                            if (!response.ok) throw new Error('שגיאה בשרת: ' + response.status);
+                            const result = await response.json();
+                            if (!result.success) throw new Error(result.error || 'שגיאה לא ידועה');
+                        } catch (error) {
+                            alert('שגיאה בשליחת קבצים: ' + error.message);
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            // Main submit
+            (async () => {
+                const ok = await submitBatches();
+                if (ok) {
+                alert('הטופס נשלח בהצלחה!');
+                clearFormSession();
+                    window.location.reload();
+                }
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+            })();
+        }
+
+        // פונקציה לעיצוב שדה מטבע עם פסיק מפריד אלפים
+        function formatCurrencyInput(input) {
+            let value = input.value.replace(/[^\d]/g, '');
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+            // הסר אפסים מובילים
+            value = value.replace(/^0+/, '');
+            // הוסף פסיק כל 3 ספרות
+            input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // עדכון שמירה של השלב בכל מעבר
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach((el, index) => {
+                el.classList.toggle('active', index === step);
+            });
+            currentStep = step;
+            updateProgress();
+            saveStep(currentStep);
+        }
+
+        // בטעינת הדף – טען נתונים ושחזר שלב
+        window.addEventListener('DOMContentLoaded', function() {
+            loadFormData();
+            const savedStep = loadStep();
+            if (savedStep && savedStep > 0 && savedStep < totalSteps) {
+                showStep(savedStep);
+            }
+
+            // פופאפ פרטי בעלים
+            var ownerPopup = document.getElementById('ownerPopup');
+            var ownerPopupForm = document.getElementById('ownerPopupForm');
+            var ownersDetailsSection = document.getElementById('ownersDetailsSection');
+            var ownerCountSelect = document.getElementById('ownerCountSelect');
+
+            ownerCountSelect.addEventListener('change', function() {
+                const val = this.value;
+                if (!val) return;
+                openOwnerPopup(val);
+            });
+
+            window.openOwnerPopup = function(count) {
+                ownerPopupForm.innerHTML = '';
+                const num = count === '5+' ? 5 : parseInt(count, 10);
+                for (let i = 0; i < num; i++) {
+                    ownerPopupForm.innerHTML += `
+                    <div class="owner-form" style="margin-bottom:2rem; border:1px solid #e2e8f0; border-radius:0.5rem; padding:1rem;">
+                        <h3 style="color:#6531a3; margin-bottom:1rem;">בעלים ${i+1}</h3>
+                        <div class="form-group">
+                            <label>שם מלא בעלים
+                                <span class="tooltip">
+                                    <span class="help-icon">?</span>
+                                    <span class="tooltip-text">שם מלא של בעלים שרשום במניות</span>
+                                </span>
+                            </label>
+                            <input type="text" name="owner[${i}][name]" required placeholder="הכנס שם מלא בעלים">
+                        </div>
+                        <div class="form-group">
+                            <label>טלפון בעלים
+                                <span class="tooltip">
+                                    <span class="help-icon">?</span>
+                                    <span class="tooltip-text">מספר טלפון של בעלים שרשום במניות</span>
+                                </span>
+                            </label>
+                            <input type="tel" name="owner[${i}][phone]" required placeholder="הכנס טלפון בעלים">
+                        </div>
+                        <div class="form-group">
+                            <label>ת"ז בעלים
+                                <span class="tooltip">
+                                    <span class="help-icon">?</span>
+                                    <span class="tooltip-text">מספר תעודת זהות של בעלים שרשום במניות</span>
+                                </span>
+                            </label>
+                            <input type="number" name="owner[${i}][id]" required placeholder="הכנס ת"ז בעלים" min="1" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>צילום ת"ז
+                                <span class="tooltip">
+                                    <span class="help-icon">?</span>
+                                    <span class="tooltip-text">צילום תקין של ת"ז ביומטרית בתוקף | *צילום קדימה ואחורה כולל ספח פתוח*</span>
+                                </span>
+                            </label>
+                            <input type="file" name="owner[${i}][idPhoto]" accept="application/pdf,image/png" required>
+                        </div>
+                    </div>
+                    `;
+                }
+                ownerPopup.style.display = 'block';
+            };
+
+            window.closeOwnerPopup = function() {
+                ownerPopup.style.display = 'none';
+            };
+
+            window.saveOwnerDetails = function() {
+                let isValid = true;
+                const inputs = ownerPopupForm.querySelectorAll('input[required]');
+                inputs.forEach(input => {
+                    if (!input.value || (input.type === 'file' && input.files.length === 0)) {
+                        isValid = false;
+                        input.style.borderColor = '#e53e3e';
+                    } else {
+                        input.style.borderColor = '';
+                    }
+                });
+                if (!isValid) {
+                    alert('יש למלא את כל השדות החובה');
+                    return;
+                }
+                // Remove all previous owner-form blocks
+                ownersDetailsSection.querySelectorAll('.owner-form').forEach(el => el.remove());
+                // Append new owner forms
+                ownerPopupForm.querySelectorAll('.owner-form').forEach(formBlock => {
+                    ownersDetailsSection.appendChild(formBlock.cloneNode(true));
+                });
+                ownerPopup.style.display = 'none';
+                ownerPopupForm.innerHTML = '';
+            };
+        });
+
+        // מחיקת הנתונים לאחר שליחה מוצלחת
+        function clearFormSession() {
+            localStorage.removeItem(FORM_STORAGE_KEY);
+            localStorage.removeItem(STEP_STORAGE_KEY);
+        }
+
+        // שמירה של השלב הנוכחי
+        function saveStep(step) {
+            localStorage.setItem(STEP_STORAGE_KEY, step);
+        }
+        // קריאה של השלב הנוכחי
+        function loadStep() {
+            return parseInt(localStorage.getItem(STEP_STORAGE_KEY) || '0', 10);
+        }
+
+        // Initialize progress
+        updateProgress();
+
+        // --- Custom file list and delete for bankStatements ---
+        function handleBankStatementsChange(event) {
+            const input = event.target;
+            const fileListContainer = document.getElementById('bankStatementsFileList');
+            fileListContainer.innerHTML = '';
+            const files = Array.from(input.files);
+            files.forEach((file, idx) => {
+                const fileDiv = document.createElement('div');
+                fileDiv.style.display = 'flex';
+                fileDiv.style.alignItems = 'center';
+                fileDiv.style.margin = '0.3em 0';
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = file.name;
+                nameSpan.style.marginLeft = '1em';
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '✖';
+                removeBtn.type = 'button';
+                removeBtn.style.background = '#e53e3e';
+                removeBtn.style.color = '#fff';
+                removeBtn.style.border = 'none';
+                removeBtn.style.borderRadius = '50%';
+                removeBtn.style.width = '1.5em';
+                removeBtn.style.height = '1.5em';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.onclick = function() {
+                    removeBankStatementFile(idx);
+                };
+                fileDiv.appendChild(removeBtn);
+                fileDiv.appendChild(nameSpan);
+                fileListContainer.appendChild(fileDiv);
+            });
+        }
+
+        // To remove a file, we need to create a new FileList (not directly possible), so we use DataTransfer
+        function removeBankStatementFile(removeIdx) {
+            const input = document.querySelector('input[name="bankStatements"]');
+            const dt = new DataTransfer();
+            const files = Array.from(input.files);
+            files.forEach((file, idx) => {
+                if (idx !== removeIdx) dt.items.add(file);
+            });
+            input.files = dt.files;
+            handleBankStatementsChange({ target: input });
+        }
+    </script>
+</body>
+</html> 

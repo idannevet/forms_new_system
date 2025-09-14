@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רישום עובדים | ביי בקלות</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-purple: #6531a3;
+            --brand-cyan: #00bcd4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rubik', sans-serif;
+        }
+
+        body {
+            background-color: var(--brand-purple);
+            min-height: 100vh;
+            padding: 1.5rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-container img {
+            width: 280px;
+            height: auto;
+        }
+
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-header h1 {
+            color: var(--brand-purple);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .employee-table th,
+        .employee-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            text-align: right;
+            vertical-align: middle;
+            min-width: 120px;
+        }
+
+        .employee-table th {
+            background-color: var(--brand-purple);
+            color: white;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .employee-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .employee-table tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .employee-table input[type="text"],
+        .employee-table input[type="email"],
+        .employee-table input[type="tel"],
+        .employee-table input[type="number"] {
+            width: 100%;
+            padding: 0.25rem;
+            border: 1px solid #ddd;
+            border-radius: 0.25rem;
+            font-size: 0.85rem;
+        }
+
+        .employee-table input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+
+        .employee-table input:focus {
+            outline: none;
+            border-color: var(--brand-purple);
+            box-shadow: 0 0 0 1px var(--brand-purple);
+        }
+
+        .readonly {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .readonly input {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .delete-row {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .delete-row:hover {
+            background-color: #c82333;
+        }
+
+        .add-row {
+            background-color: var(--brand-cyan);
+            color: var(--brand-purple);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .add-row:hover {
+            opacity: 0.9;
+        }
+
+        .submit-button {
+            background-color: var(--brand-purple);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .submit-button:hover {
+            opacity: 0.9;
+        }
+
+        .submit-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--brand-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .success-message {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .employee-table {
+                font-size: 0.8rem;
+            }
+            
+            .employee-table th,
+            .employee-table td {
+                padding: 0.25rem;
+            }
+        }
+
+        .lds-dual-ring{display:inline-block;width:48px;height:48px;}.lds-dual-ring:after{content:" ";display:block;width:32px;height:32px;margin:8px;border-radius:50%;border:6px solid #6531a3;border-color:#6531a3 transparent #6531a3 transparent;animation:lds-dual-ring 1.2s linear infinite;}@keyframes lds-dual-ring{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+
+        .declaration-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .send-declaration-btn {
+            background-color: var(--brand-cyan);
+            color: var(--brand-purple);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .send-declaration-btn:hover {
+            opacity: 0.9;
+        }
+
+        .send-declaration-btn:disabled {
+            background-color: #6c757d;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .success-marker {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .declaration-checkbox {
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+
+        .help-tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
+        .help-icon {
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            background-color: var(--brand-purple);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 1.2rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: help;
+            transition: background-color 0.2s;
+        }
+
+        .help-icon:hover {
+            background-color: var(--brand-cyan);
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            right: 125%;
+            margin-top: -25px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            margin-top: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent transparent #333;
+        }
+
+        .help-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .bulk-actions-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .bulk-checkbox {
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        .bulk-select-all {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: var(--brand-purple);
+        }
+
+        .bulk-send-btn {
+            background-color: var(--brand-purple);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .bulk-send-btn:hover {
+            opacity: 0.9;
+        }
+
+        .bulk-send-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .bulk-info {
+            color: var(--brand-purple);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .row-select-checkbox {
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="images/buykal-logo.png" alt="ביי בקלות לוגו" onerror="this.style.display='none'">
+        </div>
+        
+        <div class="form-container">
+            <div class="form-header">
+                <h1>טבלת עובדים</h1>
+                <p>הוסף עובדים חדשים למערכת</p>
+            </div>
+
+            <div style="margin-bottom:1rem;">
+                <label for="fileUpload" style="font-weight:500;">ייבוא עובדים מקובץ CSV/XLS:</label>
+                <input type="file" id="fileUpload" accept=".csv,.xls,.xlsx" style="margin-right:1em;">
+                <div style="text-align:center;margin-top:0.5rem;">
+                    <span style="color:#6531a3;font-size:0.95em;">הקובץ מוכרח להיות באותו הפורמט של הטבלה</span>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <button class="add-row" onclick="addRow()">הוסף שורה חדשה</button>
+            
+            <div class="bulk-actions-container">
+                <div class="bulk-select-all">
+                    <input type="checkbox" id="selectAllCheckbox" class="bulk-checkbox" onchange="toggleSelectAll()">
+                    <label for="selectAllCheckbox">בחר הכל</label>
+                </div>
+                <button class="bulk-send-btn" id="bulkSendBtn" onclick="bulkSendDeclarations()" disabled>שלח הצהרות לכולם</button>
+                <span class="bulk-info" id="bulkInfo">0 שורות נבחרו</span>
+            </div>
+            
+            <div class="table-container">
+                <table class="employee-table" id="employeeTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="headerSelectAll" class="bulk-checkbox" onchange="toggleSelectAll()"></th>
+                            <th>שם פרטי עברית</th>
+                            <th>שם משפחה עברית</th>
+                            <th>שם פרטי אנגלית</th>
+                            <th>שם משפחה אנגלית</th>
+                            <th>ת.ז</th>
+                            <th>מספר נייד</th>
+                            <th>עיר מגורים</th>
+                            <th>חברה מגייסת</th>
+                            <th>רצפה / מועדון</th>
+                            <th>חתימה על הצהרה</th>
+                            <th>מייל</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Rows will be added here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="lds-dual-ring"></div>
+                <div style="margin-top:0.5rem;color:#6531a3;font-weight:bold;">שולח נתונים...</div>
+            </div>
+            
+            <button class="submit-button" id="submitButton" onclick="submitData()">שליחה</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        let rowCounter = 0;
+
+        // Get opportunity ID from URL parameter
+        function getOpportunityId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('opportunity_id');
+        }
+
+        // Add a new row to the table
+        function addRow() {
+            const tbody = document.getElementById('tableBody');
+            const newRow = document.createElement('tr');
+            rowCounter++;
+            
+            newRow.innerHTML = `
+                <td><input type="checkbox" class="row-select-checkbox" onchange="updateBulkInfo()"></td>
+                <td><input type="text" name="firstNameHebrew_${rowCounter}" required></td>
+                <td><input type="text" name="lastNameHebrew_${rowCounter}" required></td>
+                <td><input type="text" name="firstNameEnglish_${rowCounter}" required></td>
+                <td><input type="text" name="lastNameEnglish_${rowCounter}" required></td>
+                <td><input type="number" name="idNumber_${rowCounter}" required pattern="[0-9]{9}" title="ת.ז חייב להכיל 9 ספרות"></td>
+                <td><input type="tel" name="phoneNumber_${rowCounter}" required pattern="[0-9]{10}" title="מספר טלפון חייב להכיל 10 ספרות"></td>
+                <td><input type="text" name="city_${rowCounter}" required></td>
+                <td><input type="text" name="recruitingCompany_${rowCounter}" required></td>
+                <td class="readonly"><input type="text" name="floorClub_${rowCounter}" value="מטלון 264" readonly></td>
+                <td>
+                    <div class="declaration-container" id="declaration_${rowCounter}">
+                        <button type="button" class="send-declaration-btn" onclick="sendDeclaration(${rowCounter})">שלח הצהרה</button>
+                        <div class="success-marker" style="display: none;">הצרה נשלחה לעובד בהצלחה</div>
+                        <div style="display: none;" class="checkbox-container">
+                            <div class="help-tooltip">
+                                <span class="help-icon">?</span>
+                                <span class="tooltip-text">סמן V לאחר שהעובד מילא את ההצרה</span>
+                            </div>
+                            <input type="checkbox" name="declaration_${rowCounter}" class="declaration-checkbox">
+                        </div>
+                    </div>
+                </td>
+                <td><input type="email" name="email_${rowCounter}" required></td>
+                <td><button type="button" class="delete-row" onclick="deleteRow(this)">מחק</button></td>
+            `;
+            
+            tbody.appendChild(newRow);
+        }
+
+        // Delete a row from the table
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        // Send declaration webhook
+        async function sendDeclaration(rowCounter) {
+            const row = document.querySelector(`#declaration_${rowCounter}`).closest('tr');
+            const button = row.querySelector('.send-declaration-btn');
+            const successMarker = row.querySelector('.success-marker');
+            const checkbox = row.querySelector('.declaration-checkbox');
+            
+            // Collect row data
+            const employeeData = {
+                firstNameHebrew: row.querySelector('input[name*="firstNameHebrew"]').value.trim(),
+                lastNameHebrew: row.querySelector('input[name*="lastNameHebrew"]').value.trim(),
+                firstNameEnglish: row.querySelector('input[name*="firstNameEnglish"]').value.trim(),
+                lastNameEnglish: row.querySelector('input[name*="lastNameEnglish"]').value.trim(),
+                idNumber: row.querySelector('input[name*="idNumber"]').value.trim(),
+                phoneNumber: row.querySelector('input[name*="phoneNumber"]').value.trim(),
+                city: row.querySelector('input[name*="city"]').value.trim(),
+                recruitingCompany: row.querySelector('input[name*="recruitingCompany"]').value.trim(),
+                floorClub: row.querySelector('input[name*="floorClub"]').value.trim(),
+                email: row.querySelector('input[name*="email"]').value.trim()
+            };
+
+            // Validate that all required fields are filled
+            const requiredFields = [
+                { value: employeeData.firstNameHebrew, name: 'שם פרטי עברית' },
+                { value: employeeData.lastNameHebrew, name: 'שם משפחה עברית' },
+                { value: employeeData.firstNameEnglish, name: 'שם פרטי אנגלית' },
+                { value: employeeData.lastNameEnglish, name: 'שם משפחה אנגלית' },
+                { value: employeeData.idNumber, name: 'ת.ז' },
+                { value: employeeData.phoneNumber, name: 'מספר נייד' },
+                { value: employeeData.city, name: 'עיר מגורים' },
+                { value: employeeData.recruitingCompany, name: 'חברה מגייסת' },
+                { value: employeeData.email, name: 'מייל' }
+            ];
+
+            // Check for empty required fields
+            const emptyFields = requiredFields.filter(field => !field.value);
+            if (emptyFields.length > 0) {
+                const fieldNames = emptyFields.map(field => field.name).join(', ');
+                alert(`יש למלא את השדות הבאים לפני שליחת ההצהרה:\n${fieldNames}`);
+                return;
+            }
+
+            // Validate ID number (9 digits)
+            if (employeeData.idNumber.length !== 9) {
+                alert('ת.ז חייב להכיל 9 ספרות בדיוק');
+                return;
+            }
+
+            // Validate phone number (10 digits)
+            if (employeeData.phoneNumber.length !== 10) {
+                alert('מספר טלפון חייב להכיל 10 ספרות');
+                return;
+            }
+
+            // Validate email
+            if (!isValidEmail(employeeData.email)) {
+                alert('כתובת המייל אינה תקינה');
+                return;
+            }
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.textContent = 'שולח...';
+            
+            try {
+
+                // Send webhook
+                const response = await fetch('https://hook.eu2.make.com/hlxoi617dht86ja2nao1bvxux1a4yu9d', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(employeeData)
+                });
+
+                if (response.ok) {
+                    // Show success marker and checkbox container
+                    successMarker.style.display = 'block';
+                    const checkboxContainer = row.querySelector('.checkbox-container');
+                    checkboxContainer.style.display = 'flex';
+                    checkboxContainer.style.alignItems = 'center';
+                    button.style.display = 'none';
+                    
+                    // Hide success marker after 2 seconds
+                    setTimeout(() => {
+                        successMarker.style.display = 'none';
+                    }, 2000);
+                } else {
+                    throw new Error('Webhook request failed');
+                }
+            } catch (error) {
+                console.error('Error sending declaration:', error);
+                alert('שגיאה בשליחת ההצהרה. נסה שוב.');
+                button.disabled = false;
+                button.textContent = 'שלח הצהרה';
+            }
+        }
+
+        // Validate form data
+        function validateForm() {
+            const tbody = document.getElementById('tableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 0) {
+                showError('יש להוסיף לפחות עובד אחד');
+                return false;
+            }
+
+            for (let row of rows) {
+                const inputs = row.querySelectorAll('input[required]');
+                for (let input of inputs) {
+                    if (!input.value.trim()) {
+                        showError('יש למלא את כל השדות החובה');
+                        return false;
+                    }
+                }
+
+                // Validate ID number (9 digits)
+                const idInput = row.querySelector('input[type="number"]');
+                if (idInput && idInput.value.length !== 9) {
+                    showError('ת.ז חייב להכיל 9 ספרות בדיוק');
+                    return false;
+                }
+
+                // Validate phone number (10 digits)
+                const phoneInput = row.querySelector('input[type="tel"]');
+                if (phoneInput && phoneInput.value.length !== 10) {
+                    showError('מספר טלפון חייב להכיל 10 ספרות');
+                    return false;
+                }
+
+                // Validate email
+                const emailInput = row.querySelector('input[type="email"]');
+                if (emailInput && !isValidEmail(emailInput.value)) {
+                    showError('כתובת המייל אינה תקינה');
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Email validation
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Hide messages
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Collect form data
+        function collectFormData() {
+            const tbody = document.getElementById('tableBody');
+            const rows = tbody.querySelectorAll('tr');
+            const employees = [];
+
+            for (let row of rows) {
+                const employee = {
+                    firstNameHebrew: row.querySelector('input[name*="firstNameHebrew"]').value.trim(),
+                    lastNameHebrew: row.querySelector('input[name*="lastNameHebrew"]').value.trim(),
+                    firstNameEnglish: row.querySelector('input[name*="firstNameEnglish"]').value.trim(),
+                    lastNameEnglish: row.querySelector('input[name*="lastNameEnglish"]').value.trim(),
+                    idNumber: row.querySelector('input[name*="idNumber"]').value.trim(),
+                    phoneNumber: row.querySelector('input[name*="phoneNumber"]').value.trim(),
+                    city: row.querySelector('input[name*="city"]').value.trim(),
+                    recruitingCompany: row.querySelector('input[name*="recruitingCompany"]').value.trim(),
+                    floorClub: row.querySelector('input[name*="floorClub"]').value.trim(),
+                    declaration: row.querySelector('input[name*="declaration"]').checked,
+                    email: row.querySelector('input[name*="email"]').value.trim()
+                };
+                employees.push(employee);
+            }
+
+            return employees;
+        }
+
+        // Submit data to Salesforce
+        async function submitData() {
+            hideMessages();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            const opportunityId = getOpportunityId();
+            if (!opportunityId) {
+                showError('חסר מזהה הזדמנות (opportunity_id) בכתובת');
+                return;
+            }
+
+            const employees = collectFormData();
+            console.log('Submitting employees:', employees);
+            const submitButton = document.getElementById('submitButton');
+            const loading = document.getElementById('loading');
+
+            submitButton.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/submit-employees.js', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        opportunityId: opportunityId,
+                        employees: employees
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess('הנתונים נשלחו בהצלחה!');
+                    // Clear the table
+                    document.getElementById('tableBody').innerHTML = '';
+                    rowCounter = 0;
+                } else {
+                    showError(result.error || 'שגיאה בשליחת הנתונים');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('שגיאה בחיבור לשרת');
+            } finally {
+                submitButton.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        // Toggle select all checkboxes
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const headerSelectAll = document.getElementById('headerSelectAll');
+            const rowCheckboxes = document.querySelectorAll('.row-select-checkbox');
+            
+            const isChecked = selectAllCheckbox.checked;
+            
+            // Sync both select all checkboxes
+            selectAllCheckbox.checked = isChecked;
+            headerSelectAll.checked = isChecked;
+            
+            // Check/uncheck all row checkboxes
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            
+            updateBulkInfo();
+        }
+
+        // Update bulk info display
+        function updateBulkInfo() {
+            const rowCheckboxes = document.querySelectorAll('.row-select-checkbox');
+            const selectedCount = Array.from(rowCheckboxes).filter(cb => cb.checked).length;
+            const totalCount = rowCheckboxes.length;
+            
+            const bulkInfo = document.getElementById('bulkInfo');
+            const bulkSendBtn = document.getElementById('bulkSendBtn');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const headerSelectAll = document.getElementById('headerSelectAll');
+            
+            bulkInfo.textContent = `${selectedCount} שורות נבחרו`;
+            bulkSendBtn.disabled = selectedCount === 0;
+            
+            // Update select all checkboxes state
+            if (selectedCount === 0) {
+                selectAllCheckbox.checked = false;
+                headerSelectAll.checked = false;
+            } else if (selectedCount === totalCount) {
+                selectAllCheckbox.checked = true;
+                headerSelectAll.checked = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                headerSelectAll.checked = false;
+            }
+        }
+
+        // Get row data for validation
+        function getRowData(row) {
+            return {
+                firstNameHebrew: row.querySelector('input[name*="firstNameHebrew"]').value.trim(),
+                lastNameHebrew: row.querySelector('input[name*="lastNameHebrew"]').value.trim(),
+                firstNameEnglish: row.querySelector('input[name*="firstNameEnglish"]').value.trim(),
+                lastNameEnglish: row.querySelector('input[name*="lastNameEnglish"]').value.trim(),
+                idNumber: row.querySelector('input[name*="idNumber"]').value.trim(),
+                phoneNumber: row.querySelector('input[name*="phoneNumber"]').value.trim(),
+                city: row.querySelector('input[name*="city"]').value.trim(),
+                recruitingCompany: row.querySelector('input[name*="recruitingCompany"]').value.trim(),
+                floorClub: row.querySelector('input[name*="floorClub"]').value.trim(),
+                email: row.querySelector('input[name*="email"]').value.trim()
+            };
+        }
+
+        // Validate row data
+        function isRowDataValid(employeeData) {
+            const requiredFields = [
+                employeeData.firstNameHebrew,
+                employeeData.lastNameHebrew,
+                employeeData.firstNameEnglish,
+                employeeData.lastNameEnglish,
+                employeeData.idNumber,
+                employeeData.phoneNumber,
+                employeeData.city,
+                employeeData.recruitingCompany,
+                employeeData.email
+            ];
+
+            return requiredFields.every(field => field) &&
+                   employeeData.idNumber.length === 9 &&
+                   employeeData.phoneNumber.length === 10 &&
+                   isValidEmail(employeeData.email);
+        }
+
+        // Bulk send declarations
+        async function bulkSendDeclarations() {
+            const tbody = document.getElementById('tableBody');
+            const rows = tbody.querySelectorAll('tr');
+            const bulkSendBtn = document.getElementById('bulkSendBtn');
+            const bulkInfo = document.getElementById('bulkInfo');
+            
+            // Find all selected rows that are ready for sending
+            const selectedRows = [];
+            rows.forEach((row, index) => {
+                const checkbox = row.querySelector('.row-select-checkbox');
+                const button = row.querySelector('.send-declaration-btn');
+                
+                if (checkbox && checkbox.checked && button && button.style.display !== 'none') {
+                    const employeeData = getRowData(row);
+                    if (isRowDataValid(employeeData)) {
+                        selectedRows.push({ row, index, data: employeeData });
+                    }
+                }
+            });
+
+            if (selectedRows.length === 0) {
+                alert('אין שורות נבחרות מוכנות לשליחה');
+                return;
+            }
+
+            // Disable button and show progress
+            bulkSendBtn.disabled = true;
+            bulkSendBtn.textContent = 'שולח...';
+            bulkInfo.textContent = `שולח ${selectedRows.length} שורות...`;
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            // Send each selected row
+            for (const { row, data } of selectedRows) {
+                try {
+                    const response = await fetch('https://hook.eu2.make.com/hlxoi617dht86ja2nao1bvxux1a4yu9d', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        // Update row UI
+                        const button = row.querySelector('.send-declaration-btn');
+                        const successMarker = row.querySelector('.success-marker');
+                        const checkboxContainer = row.querySelector('.checkbox-container');
+                        const rowCheckbox = row.querySelector('.row-select-checkbox');
+                        
+                        successMarker.style.display = 'block';
+                        checkboxContainer.style.display = 'flex';
+                        checkboxContainer.style.alignItems = 'center';
+                        button.style.display = 'none';
+                        rowCheckbox.checked = false; // Uncheck the row
+                        
+                        // Hide success marker after 2 seconds
+                        setTimeout(() => {
+                            successMarker.style.display = 'none';
+                        }, 2000);
+                        
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    console.error('Error sending declaration for row:', error);
+                    errorCount++;
+                }
+            }
+
+            // Show results
+            if (errorCount === 0) {
+                showSuccess(`נשלחו בהצלחה ${successCount} הצהרות`);
+            } else {
+                showError(`נשלחו ${successCount} הצהרות, ${errorCount} נכשלו`);
+            }
+
+            // Reset button and update info
+            bulkSendBtn.disabled = false;
+            bulkSendBtn.textContent = 'שלח הצהרות לכולם';
+            updateBulkInfo();
+        }
+
+        // Add initial row when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addRow();
+        });
+
+        // XLS/CSV file upload logic
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'csv') {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        populateTableFromData(results.data);
+                    }
+                });
+            } else if (ext === 'xls' || ext === 'xlsx') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+                    populateTableFromData(json);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert('פורמט קובץ לא נתמך. יש לבחור קובץ CSV, XLS או XLSX.');
+            }
+        });
+
+        // Helper to populate table from parsed data
+        function populateTableFromData(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            rowCounter = 0;
+            data.forEach(row => {
+                rowCounter++;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="row-select-checkbox" onchange="updateBulkInfo()"></td>
+                    <td><input type="text" name="firstNameHebrew_${rowCounter}" value="${row['firstNameHebrew']||row['שם פרטי עברית']||''}" required></td>
+                    <td><input type="text" name="lastNameHebrew_${rowCounter}" value="${row['lastNameHebrew']||row['שם משפחה עברית']||''}" required></td>
+                    <td><input type="text" name="firstNameEnglish_${rowCounter}" value="${row['firstNameEnglish']||row['שם פרטי אנגלית']||''}" required></td>
+                    <td><input type="text" name="lastNameEnglish_${rowCounter}" value="${row['lastNameEnglish']||row['שם משפחה אנגלית']||''}" required></td>
+                    <td><input type="number" name="idNumber_${rowCounter}" value="${row['idNumber']||row['ת.ז']||''}" required pattern="[0-9]{9}" title="ת.ז חייב להכיל 9 ספרות"></td>
+                    <td><input type="tel" name="phoneNumber_${rowCounter}" value="${row['phoneNumber']||row['מספר נייד']||''}" required pattern="[0-9]{10}" title="מספר טלפון חייב להכיל 10 ספרות"></td>
+                    <td><input type="text" name="city_${rowCounter}" value="${row['city']||row['עיר מגורים']||''}" required></td>
+                    <td><input type="text" name="recruitingCompany_${rowCounter}" value="${row['recruitingCompany']||row['חברה מגייסת']||''}" required></td>
+                    <td class="readonly"><input type="text" name="floorClub_${rowCounter}" value="${row['floorClub']||row['רצפה / מועדון']||'מטלון 264'}" readonly></td>
+                    <td>
+                        <div class="declaration-container" id="declaration_${rowCounter}">
+                            <button type="button" class="send-declaration-btn" onclick="sendDeclaration(${rowCounter})">שלח הצהרה</button>
+                            <div class="success-marker" style="display: none;">הצרה נשלחה לעובד בהצלחה</div>
+                            <div style="display: none;" class="checkbox-container">
+                                <div class="help-tooltip">
+                                    <span class="help-icon">?</span>
+                                    <span class="tooltip-text">סמן V לאחר שהעובד מילא את ההצרה</span>
+                                </div>
+                                <input type="checkbox" name="declaration_${rowCounter}" class="declaration-checkbox" ${row['declaration']||row['חתימה על הצהרה']? 'checked' : ''}>
+                            </div>
+                        </div>
+                    </td>
+                    <td><input type="email" name="email_${rowCounter}" value="${row['email']||row['מייל']||''}" required></td>
+                    <td><button type="button" class="delete-row" onclick="deleteRow(this)">מחק</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html> 
