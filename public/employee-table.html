@@ -982,6 +982,32 @@
             }
         });
 
+        // Format phone number for Israeli format
+        function formatPhoneNumber(phone) {
+            if (!phone) return '';
+            
+            // Convert to string and remove all non-digit characters
+            let cleanPhone = phone.toString().replace(/\D/g, '');
+            
+            // Handle different formats
+            if (cleanPhone.length === 9) {
+                // Add leading 0 for 9-digit numbers (e.g., "501111111" -> "0501111111")
+                return '0' + cleanPhone;
+            } else if (cleanPhone.length === 12 && cleanPhone.startsWith('972')) {
+                // Replace 972 with 0 for 12-digit numbers (e.g., "97250111111" -> "0501111111")
+                return '0' + cleanPhone.substring(3);
+            } else if (cleanPhone.length === 10 && cleanPhone.startsWith('0')) {
+                // Already in correct format
+                return cleanPhone;
+            } else if (cleanPhone.length === 10 && !cleanPhone.startsWith('0')) {
+                // 10 digits without leading 0, add it
+                return '0' + cleanPhone;
+            }
+            
+            // Return as is if no pattern matches
+            return cleanPhone;
+        }
+
         // Helper to populate table from parsed data
         function populateTableFromData(data) {
             const tbody = document.getElementById('tableBody');
@@ -989,6 +1015,11 @@
             rowCounter = 0;
             data.forEach(row => {
                 rowCounter++;
+                
+                // Format phone number
+                const rawPhone = row['phoneNumber'] || row['מספר נייד'] || '';
+                const formattedPhone = formatPhoneNumber(rawPhone);
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="row-select-checkbox" onchange="updateBulkInfo()"></td>
@@ -997,7 +1028,7 @@
                     <td><input type="text" name="firstNameEnglish_${rowCounter}" value="${row['firstNameEnglish']||row['שם פרטי אנגלית']||''}" required></td>
                     <td><input type="text" name="lastNameEnglish_${rowCounter}" value="${row['lastNameEnglish']||row['שם משפחה אנגלית']||''}" required></td>
                     <td><input type="number" name="idNumber_${rowCounter}" value="${row['idNumber']||row['ת.ז']||''}" required pattern="[0-9]{9}" title="ת.ז חייב להכיל 9 ספרות"></td>
-                    <td><input type="tel" name="phoneNumber_${rowCounter}" value="${row['phoneNumber']||row['מספר נייד']||''}" required pattern="[0-9]{10}" title="מספר טלפון חייב להכיל 10 ספרות"></td>
+                    <td><input type="tel" name="phoneNumber_${rowCounter}" value="${formattedPhone}" required pattern="[0-9]{10}" title="מספר טלפון חייב להכיל 10 ספרות"></td>
                     <td><input type="text" name="city_${rowCounter}" value="${row['city']||row['עיר מגורים']||''}" required></td>
                     <td><input type="text" name="recruitingCompany_${rowCounter}" value="${row['recruitingCompany']||row['חברה מגייסת']||''}" required></td>
                     <td class="readonly"><input type="text" name="floorClub_${rowCounter}" value="${row['floorClub']||row['רצפה / מועדון']||'מטלון 264'}" readonly></td>
