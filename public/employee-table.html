@@ -473,13 +473,7 @@
     <script>
         let rowCounter = 0;
 
-        // Get opportunity ID from URL parameter
-        function getOpportunityId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('opportunity_id');
-        }
-
-        // Get record ID from URL parameter
+        // Get record ID from URL parameter (replaces opportunity_id)
         function getRecordId() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('record_id');
@@ -725,7 +719,7 @@
             return employees;
         }
 
-        // Submit data to Salesforce
+        // Submit data to webhook
         async function submitData() {
             hideMessages();
             
@@ -733,9 +727,9 @@
                 return;
             }
 
-            const opportunityId = getOpportunityId();
-            if (!opportunityId) {
-                showError('חסר מזהה הזדמנות (opportunity_id) בכתובת');
+            const recordId = getRecordId();
+            if (!recordId) {
+                showError('חסר מזהה רשומה (record_id) בכתובת');
                 return;
             }
 
@@ -748,26 +742,24 @@
             loading.style.display = 'block';
 
             try {
-                const response = await fetch('/api/submit-employees.js', {
+                const response = await fetch('https://hook.eu2.make.com/lqiwmyqr3nsixcdkfzplqlraiy1lzxsv', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        opportunityId: opportunityId,
+                        record_id: recordId,
                         employees: employees
                     })
                 });
 
-                const result = await response.json();
-
-                if (result.success) {
+                if (response.ok) {
                     showSuccess('הנתונים נשלחו בהצלחה!');
                     // Clear the table
                     document.getElementById('tableBody').innerHTML = '';
                     rowCounter = 0;
                 } else {
-                    showError(result.error || 'שגיאה בשליחת הנתונים');
+                    showError('שגיאה בשליחת הנתונים');
                 }
             } catch (error) {
                 console.error('Error:', error);
